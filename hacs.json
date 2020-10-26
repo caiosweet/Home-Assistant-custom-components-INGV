@@ -1,0 +1,6 @@
+{
+  "name": "INGV Istituto Nazionale di Geofisica e Vulcanologia",
+  "domains": ["geo_location"],
+  "country": ["IT"],
+  "render_readme": true
+}
