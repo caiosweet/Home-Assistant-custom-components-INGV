@@ -28,7 +28,7 @@ on the default map automatically, or on a map card by defining the source
 of each entity.
 
 <p class='img'>
-  <img src='/assets/images/ingv-terremoti-feed-map.png' />
+  <img src='/assets/images/ingv-terremoti-feed-image-url.png' />
 </p>
 
 The data is updated every 5 minutes.
