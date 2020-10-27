@@ -1,5 +1,9 @@
 # INGV Terremoti
 
+<p class='img'>
+  <img src='/assets/brand/logo_128.png' />
+</p>
+
 [![hacs][hacsbadge]][hacs] ![hacs_validate] ![Validate with hassfest]
 
 [![GitHub latest release]][githubrelease] ![GitHub Release Date]
