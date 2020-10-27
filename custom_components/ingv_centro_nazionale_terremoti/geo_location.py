@@ -23,8 +23,6 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.dispatcher import async_dispatcher_connect, dispatcher_send
 from homeassistant.helpers.event import track_time_interval
 
-# REQUIREMENTS = ["georss_ingv_centro_nazionale_terremoti_client==0.1"]
-
 _LOGGER = logging.getLogger(__name__)
 
 ATTR_EXTERNAL_ID = "external_id"
@@ -51,7 +49,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_RADIUS, default=DEFAULT_RADIUS_IN_KM): vol.Coerce(float),
         vol.Optional(
             CONF_MINIMUM_MAGNITUDE, default=DEFAULT_MINIMUM_MAGNITUDE
-        ): vol.All(vol.Coerce(float), vol.Range(min=0)),
+        ): vol.All(vol.Coerce(float), vol.Range(min=0)), #cv.positive_float,
     }
 )
 
