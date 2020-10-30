@@ -1,7 +1,7 @@
 # INGV Terremoti
 
 <p class='img'>
-  <img src='/assets/brand/logo_128.png' />
+  <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/brand/logo_128.png'/>
 </p>
 
 [![hacs][hacsbadge]][hacs] ![hacs_validate] ![Validate with hassfest]
@@ -32,7 +32,7 @@ on the default map automatically, or on a map card by defining the source
 of each entity.
 
 <p class='img'>
-  <img src='/assets/images/ingv-terremoti-feed-image-url.png' />
+  <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/ingv-terremoti-feed-image-url.png' />
 </p>
 
 The data is updated every 5 minutes.
