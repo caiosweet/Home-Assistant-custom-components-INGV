@@ -6,12 +6,11 @@
 
 [![hacs][hacsbadge]][hacs] ![hacs_validate] ![Validate with hassfest]
 
-[![GitHub latest release]][githubrelease] ![GitHub Release Date]
-[![Maintenancebadge]][Maintenance]
-[![GitHub issuesbadge]][GitHub issues]
+[![GitHub latest release]][githubrelease] ![GitHub Release Date] [![Maintenancebadge]][Maintenance] [![GitHub issuesbadge]][GitHub issues]
 
-[![Websitebadge]][website] [![Forum][forumbadge]][forum]
-[![telegrambadge]][telegram] [![facebookbadge]][facebook] 
+[![Websitebadge]][website] [![Forum][forumbadge]][forum] [![telegrambadge]][telegram] [![facebookbadge]][facebook] 
+
+[![Don't buy me a coffee](https://img.shields.io/static/v1.svg?label=Don't%20buy%20me%20a%20coffee&message=🔔&color=black&logo=buy%20me%20a%20coffee&logoColor=white&labelColor=6f4e37)](https://paypal.me/hassiohelp)
 
 
 
@@ -39,7 +38,7 @@ The data is updated every 5 minutes.
 
 ## Configuration
 
-To integrate the IGN Sismología feed, add the following lines to your `configuration.yaml`.
+To integrate the INGV Centro Nazionale Terremoti feed, add the following lines to your `configuration.yaml`.
 
 ```yaml
 # Example configuration.yaml entry
