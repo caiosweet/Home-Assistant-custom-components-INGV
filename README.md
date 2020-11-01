@@ -1,17 +1,16 @@
 # INGV Terremoti
 
 <p class='img'>
-  <img src='/assets/brand/logo_128.png' />
+  <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/brand/logo_128.png'/>
 </p>
 
 [![hacs][hacsbadge]][hacs] ![hacs_validate] ![Validate with hassfest]
 
-[![GitHub latest release]][githubrelease] ![GitHub Release Date]
-[![Maintenancebadge]][Maintenance]
-[![GitHub issuesbadge]][GitHub issues]
+[![GitHub latest release]][githubrelease] ![GitHub Release Date] [![Maintenancebadge]][Maintenance] [![GitHub issuesbadge]][GitHub issues]
 
-[![Websitebadge]][website] [![Forum][forumbadge]][forum]
-[![telegrambadge]][telegram] [![facebookbadge]][facebook] 
+[![Websitebadge]][website] [![Forum][forumbadge]][forum] [![telegrambadge]][telegram] [![facebookbadge]][facebook] 
+
+[![Don't buy me a coffee](https://img.shields.io/static/v1.svg?label=Don't%20buy%20me%20a%20coffee&message=🔔&color=black&logo=buy%20me%20a%20coffee&logoColor=white&labelColor=6f4e37)](https://paypal.me/hassiohelp)
 
 
 
@@ -32,14 +31,14 @@ on the default map automatically, or on a map card by defining the source
 of each entity.
 
 <p class='img'>
-  <img src='/assets/images/ingv-terremoti-feed-image-url.png' />
+  <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/ingv-terremoti-feed-image-url.png' />
 </p>
 
 The data is updated every 5 minutes.
 
 ## Configuration
 
-To integrate the IGN Sismología feed, add the following lines to your `configuration.yaml`.
+To integrate the INGV Centro Nazionale Terremoti feed, add the following lines to your `configuration.yaml`.
 
 ```yaml
 # Example configuration.yaml entry
