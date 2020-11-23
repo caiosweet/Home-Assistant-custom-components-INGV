@@ -31,7 +31,7 @@ on the default map automatically, or on a map card by defining the source
 of each entity.
 
 <p class='img'>
-  <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/ingv-terremoti-feed-image-url.png' />
+  <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/map.png' />
 </p>
 
 The data is updated every 5 minutes.
@@ -72,8 +72,8 @@ the standard ones:
 | region             | Textual description of named geographic region near to the event. |
 | magnitude          | Reported magnitude of the earthquake. |
 | publication_date   | Date and time when this event occurred. |
-| event_id           | 
-| image_url          | URL to a map supplied in the feed marking the location of the event. This could for example be used in notifications. |
+| event_id           | Return the short id of the event. |
+| image_url          | URL to a map supplied in the feed marking the location of the event. This could for example be used in notifications. **Images are only available for magnitude >= 3**. |
 
 
 ## Full Configuration
@@ -87,6 +87,210 @@ geo_location:
     latitude: 41.89
     longitude: 12.51
 ```
+
+___
+
+## [Other information](https://hassiohelp.eu/2019/10/06/package-eventi-naturali/)
+
+## [My Package](https://github.com/caiosweet/Package-Natural-Events/tree/main/config/packages)
+
+## Example Binary Sensor
+```yaml
+binary_sensor:
+  - platform: template
+    sensors:
+      lastquake:
+        friendly_name: Evento terremoto
+        device_class: vibration
+        # availability_template: False
+        value_template: >-
+          {% set last_date = states.geo_location
+            | selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+            | sort(attribute='attributes.publication_date')
+            | map(attribute='attributes.publication_date') |list|last %}
+          {{ ((as_timestamp(utcnow())-as_timestamp(last_date))/3600) <= 24 if last_date else False }}
+        attribute_templates:
+          distance: >-
+            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+              |sort(attribute='attributes.publication_date')|map(attribute='state')|list|last}}
+          lat: >-
+            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.latitude')|list|last}}
+          long: >-
+            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.longitude')|list|last}}
+          title: >-
+            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.title')|list|last}}
+          region: >-
+            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.region')|list|last}}
+          magnitude: >-
+            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.magnitude')|list|last}}
+          publication_date: >-
+            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.publication_date')|list|last}}
+          event_id: >-
+            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.event_id')|list|last}}
+          image_url: >-
+            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.image_url')|list|last}}
+          attribution: >-
+            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.attribution')|list|last}}
+          level: >-
+            {%set m = states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.magnitude')|list|last|default(0)%}
+              {% set m = m|float %}
+              {%if 0<=m<=1.9%}0{%elif 2<=m<=2.9%}1{%elif 3<=m<=3.9%}2{%elif 4<=m<=5.9%}3{%else%}4{%endif%}
+          external_id: >-
+            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
+            |sort(attribute='attributes.publication_date')|map(attribute='attributes.external_id')|list|last|replace('smi:','')}}
+```
+
+## Example Zone
+```yaml
+zone:
+  - name: geoalert
+    latitude: !secret latitude_home
+    longitude: !secret longitude_home
+    radius: 200
+    passive: true
+```
+
+## Example Automation
+```yaml
+automation:
+  - alias: Quake Notifications
+    mode: queued
+    max_exceeded: silent
+    initial_state: true
+    trigger:
+      - platform: geo_location
+        source: "ingv_centro_nazionale_terremoti"
+        zone: zone.geoalert
+        event: enter
+    condition: >-
+      {{((as_timestamp(utcnow())-as_timestamp(trigger.to_state.attributes.publication_date))/3600*60)|int < 60}}
+    action:
+      - service: notify.telegram
+        data:
+          title: >-
+            🚧 Rilevato terremoto.
+          message: >-
+            {% set data_utc = trigger.to_state.attributes.publication_date %}
+            Rilevato terremoto di magnitudo: {{trigger.to_state.attributes.magnitude}} 
+            a una distanza di {{trigger.to_state.state}} Km da casa. Epicentro: {{trigger.to_state.attributes.region}} 
+            {{as_timestamp(data_utc)|timestamp_custom ('Data %d/%m/%Y Ore %H:%M:%S')}}
+            {% if trigger.to_state.attributes.image_url and trigger.to_state.attributes.magnitude >= 3%}
+            {{trigger.to_state.attributes.image_url}}
+            {% endif %}
+```
+
+## Example Lovelace Map Card
+```yaml
+type: map
+entities:
+  - entity: person.YUOR_PERSON
+geo_location_sources:
+  - ingv_centro_nazionale_terremoti
+dark_mode: true
+default_zoom: 8
+aspect_ratio: '16:9'
+hours_to_show: 72
+```
+
+## Example My Lovelace card
+Required custom auto-entities, card-mod and [binary_sensor.lastquake](#example-binary-sensor)
+```yaml
+
+type: conditional
+conditions:
+  - entity: binary_sensor.lastquake
+    state: 'on'
+card:
+  type: vertical-stack
+  cards:
+    - type: markdown
+      style: |
+        ha-card {background: none; border-radius: 0px; box-shadow: none;}
+      content: >-
+        #### TERREMOTI - ULTIME 24h  [<img
+        src="https://www.hsit.it/images/favicon.png"/> Hai Sentito Il
+        Terremoto](http://www.haisentitoilterremoto.it/)
+
+        <!-- Setting -->
+          {%- set person = 'person.claudio' -%}
+          {%- set url = "http://shakemap.rm.ingv.it/shake/{}/download/{}.jpg" -%}
+          {%- set entityid = 'binary_sensor.lastquake' -%}
+          {%- set id = state_attr(entityid, 'event_id') -%}
+          {%- set data_utc = state_attr(entityid, 'publication_date') -%}
+          {%- set magnitudo = (state_attr(entityid, 'magnitude')|float) if not none else '0' -%}
+          {%- set code = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} -%}
+          {%- set color = code[state_attr('binary_sensor.lastquake', 'level')|int] -%}
+          {%- set lat = state_attr(entityid, 'lat') -%}
+          {%- set long = state_attr(entityid, 'long') -%}
+        <font>
+
+        **<font color="{{color}}">{{as_timestamp(data_utc)|timestamp_custom
+        ('%H:%M:%S del %d/%m/%Y')}}</font>**<br><br> Un terremoto di magnitudo
+        **<font color="{{color}}">{{magnitudo}}</font>**<br> è avvenuto nella
+        zona: [{{state_attr(entityid,
+        'region')}}](https://www.openstreetmap.org/?mlat={{lat}}&mlon={{long}}#map=12/{{lat}}/{{long}})<br>
+        a <font color="{{color}}">**{{state_attr(entityid,
+        'distance')}}**</font> km da casa,<br> con coordinate geografiche (lat,
+        long) {{lat}},{{long}}.<br> {{("Tu ti trovi a " ~ distance(lat, long,
+        person)) ~ " km dall'epicentro." if is_state(person, 'not_home') else
+        ''}} </font> {% if magnitudo >= 3 %}<br>
+        [Shakemap]({{url.format(id,'intensity')}}) ~ 
+        [PGA]({{url.format(id,'pga')}}) ~ [PGV]({{url.format(id,'pgv')}}) ~
+        [TvMap]({{url.format(id,'tvmap')}}) ~
+        [TvMap2]({{url.format(id,'tvmap_bare')}}) ~ 
+        [HaiSentitoIlTerremoto](http://eventi.haisentitoilterremoto.it/{{id}}/{{id}}_mcs.jpg)
+
+        <!-- Scegli il titpo di immagine da visualizzare
+        [intensity,pga,pgv,tvmap,tvmap_bare] -->
+          <img src="{{url.format(id,'intensity')}}"/>
+          <!-- <img src="{{url.format(id,'pga')}}"/> -->
+        {% endif %}
+
+        <!-- 
+          Map Google
+          [{{state_attr(entityid, 'region')}}](http://maps.google.com/maps?z=8&q=loc:{{lat}}+{{long}})
+          Map Open Streat Map
+          [{{state_attr(entityid, 'region')}}](https://www.openstreetmap.org/?mlat={{lat}}&mlon={{long}}#map=8/{{lat}}/{{long}})
+        -->
+    - type: 'custom:auto-entities'
+      show_empty: false
+      sort:
+        attribute: publication_date
+        method: attribute
+        reverse: true
+        count: 3
+        first: 1
+      filter:
+        include:
+          - entity_id: geo_location.*
+            attributes:
+              source: ingv_centro_nazionale_terremoti
+      card:
+        type: markdown
+        entity_id: this.entity_id
+        style: |
+          ha-card {background: none; border-radius: 0px; box-shadow: none;}
+        content: "<center> <img src=\"http://terremoti.ingv.it/favicon.ico\" width=\"16\"/>  <a href=\"http://terremoti.ingv.it/\"> LISTA ULTIMI TERREMOTI </a></center> {% set url = \"http://shakemap.rm.ingv.it/shake/{}/download/{}.jpg\" %} {% set url2 = \"https://e.hsit.it/{}/{}_{}.jpg\" %} {% set code = {1:'White', 2:'Green', 3:'Yellow', 4:'Orange', 5:'Red'} %} {% for e in config.entities %} {% set id = state_attr(e.entity, 'event_id') %}<br>\n<font color=\"var(--disabled-text-color)\">{{state_attr(e.entity, 'publication_date').strftime(\"%d/%m %H:%M\") }}</font> <font color=\"{{code[state_attr(e.entity, 'magnitude')|int]}}\"> <ha-icon icon=\"{{state_attr(e.entity, 'icon')}}\"></ha-icon></font> {{state_attr(e.entity, 'friendly_name')}} \U0001F3E1➡ {{states(e.entity)}} Km\n{% if state_attr(e.entity, 'magnitude') >= 3 %} <center>  <a href=\"{{state_attr(e.entity, 'image_url')}}\"> <img src=\"{{state_attr(e.entity, 'image_url')}}\" height=\"50\"></a> <a href=\"{{url.format(id,'pga')}}\"> <img src=\"{{url.format(id,'pga')}}\" height=\"50\" ></a> <a href=\"{{url.format(id,'pgv')}}\"> <img src=\"{{url.format(id,'pgv')}}\" height=\"50\" ></a> <a href=\"{{url.format(id,'tvmap')}}\"> <img src=\"{{url.format(id,'tvmap')}}\" height=\"50\" ></a> <a href=\"{{url2.format(id,id,'mcs')}}\"> <img src=\"{{url2.format(id,id,'mcs')}}\" height=\"50\" ></a> <a href=\"{{url2.format(id,id,'filledMCS')}}\"> <img src=\"{{url2.format(id,id,'filledMCS')}}\" height=\"50\" ></a> <a href=\"{{url2.format(id,id,'emailMap')}}\"> <img src=\"{{url2.format(id,id,'emailMap')}}\" height=\"50\" ></a> </center>  {% endif %} {%- endfor %}"
+
+```
+
+<p class='img'>
+  <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/ingv-terremoti-feed-image-url.png' />
+</p>
+
+
+## Trademark Legal Notices
+All product names, trademarks and registered trademarks in the images in this repository, are property of their respective owners. All images in this repository are used by the author for identification purposes only. The use of these names, trademarks and brands appearing in these image files, do not imply endorsement.
 
 
 [hacs]: https://github.com/custom-components/hacs
