@@ -156,7 +156,7 @@ zone:
   - name: geoalert
     latitude: !secret latitude_home
     longitude: !secret longitude_home
-    radius: 200
+    radius: 100000 #The radius of the zone in meters
     passive: true
 ```
 
