@@ -185,7 +185,7 @@ automation:
             a una distanza di {{trigger.to_state.state}} Km da casa. Epicentro: {{trigger.to_state.attributes.region}} 
             {{as_timestamp(data_utc)|timestamp_custom ('Data %d/%m/%Y Ore %H:%M:%S')}}
             {% if trigger.to_state.attributes.image_url is defined and trigger.to_state.attributes.magnitude >= 3%}
-            {{trigger.to_state.attributes.image_url}}
+            http://shakemap.rm.ingv.it/shake4/data/{{trigger.to_state.attributes.event_id}}/current/products/intensity.jpg
             {% endif %}
 ```
 
