@@ -107,39 +107,39 @@ binary_sensor:
           {% set last_date = states.geo_location
             | selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
             | sort(attribute='attributes.publication_date')
-            | map(attribute='attributes.publication_date') |list|last %}
+            | map(attribute='attributes.publication_date') |list|last|default %}
           {{ ((as_timestamp(utcnow())-as_timestamp(last_date))/3600) <= 24 if last_date else False }}
         attribute_templates:
           distance: >-
             {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='state')|list|last}}
+              |sort(attribute='attributes.publication_date')|map(attribute='state')|list|last|default}}
           lat: >-
             {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.latitude')|list|last}}
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.latitude')|list|last|default}}
           long: >-
             {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.longitude')|list|last}}
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.longitude')|list|last|default}}
           title: >-
             {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.title')|list|last}}
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.title')|list|last|default}}
           region: >-
             {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.region')|list|last}}
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.region')|list|last|default}}
           magnitude: >-
             {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.magnitude')|list|last}}
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.magnitude')|list|last|default}}
           publication_date: >-
             {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.publication_date')|list|last}}
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.publication_date')|list|last|default}}
           event_id: >-
             {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.event_id')|list|last}}
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.event_id')|list|last|default}}
           image_url: >-
             {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.image_url')|list|last}}
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.image_url')|list|last|default}}
           attribution: >-
             {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.attribution')|list|last}}
+              |sort(attribute='attributes.publication_date')|map(attribute='attributes.attribution')|list|last|default}}
           level: >-
             {%set m = states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
               |sort(attribute='attributes.publication_date')|map(attribute='attributes.magnitude')|list|last|default(0)%}
@@ -147,7 +147,7 @@ binary_sensor:
               {%if 0<=m<=1.9%}0{%elif 2<=m<=2.9%}1{%elif 3<=m<=3.9%}2{%elif 4<=m<=5.9%}3{%else%}4{%endif%}
           external_id: >-
             {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-            |sort(attribute='attributes.publication_date')|map(attribute='attributes.external_id')|list|last|replace('smi:','')}}
+            |sort(attribute='attributes.publication_date')|map(attribute='attributes.external_id')|list|last|default|replace('smi:','')}}
 ```
 
 ## Example Zone
@@ -173,7 +173,7 @@ automation:
         zone: zone.geoalert
         event: enter
     condition: >-
-      {{((as_timestamp(utcnow())-as_timestamp(trigger.to_state.attributes.publication_date))/3600*60)|int < 60}}
+      {{ ((as_timestamp(utcnow()) - as_timestamp(trigger.to_state.attributes.publication_date))/3600*60)|int < 90 }}
     action:
       - service: notify.telegram
         data:
@@ -181,12 +181,22 @@ automation:
             🚧 Rilevato terremoto.
           message: >-
             {% set data_utc = trigger.to_state.attributes.publication_date %}
-            Rilevato terremoto di magnitudo: {{trigger.to_state.attributes.magnitude}} 
-            a una distanza di {{trigger.to_state.state}} Km da casa. Epicentro: {{trigger.to_state.attributes.region}} 
-            {{as_timestamp(data_utc)|timestamp_custom ('Data %d/%m/%Y Ore %H:%M:%S')}}
-            {% if trigger.to_state.attributes.image_url and trigger.to_state.attributes.magnitude >= 3%}
-            {{trigger.to_state.attributes.image_url}}
+            Rilevato terremoto di magnitudo: {{ trigger.to_state.attributes.magnitude }} 
+            a una distanza di {{ trigger.to_state.state }} Km da casa. Epicentro: {{ trigger.to_state.attributes.region }} 
+            {{ as_timestamp(data_utc)|timestamp_custom ('Data %d/%m/%Y Ore %H:%M:%S') }}
+            {% if trigger.to_state.attributes.image_url is defined %}
+            {{ trigger.to_state.attributes.image_url }}
             {% endif %}
+      - choose:
+          - conditions: "{{ trigger.to_state.attributes.image_url is defined }}"
+            sequence:
+              - service: telegram_bot.send_photo
+                  data:
+                    url: "{{ trigger.to_state.attributes.image_url }}"
+                    caption: "{{ trigger.to_state.attributes.title }}"
+                    target: '12345'
+                    parse_mode: html
+                    timeout: 1000
 ```
 
 ## Example Lovelace Map Card
@@ -214,73 +224,77 @@ card:
   type: vertical-stack
   cards:
     - type: markdown
-      style: |
-        ha-card {background: none; border-radius: 0px; box-shadow: none;}
+      card_mod:
+        style: |
+          ha-card {background: none; border-radius: 0px; box-shadow: none;}
+          ha-markdown {padding-bottom: 0 !important;}
       content: >-
-        #### TERREMOTI - ULTIME 24h  [<img
-        src="https://www.hsit.it/images/favicon.png"/> Hai Sentito Il
-        Terremoto](http://www.haisentitoilterremoto.it/)
+        ___
 
-        <!-- Setting -->
-          {%- set person = 'person.claudio' -%}
-          {%- set url = "http://shakemap.rm.ingv.it/shake/{}/download/{}.jpg" -%}
-          {%- set entityid = 'binary_sensor.lastquake' -%}
-          {%- set id = state_attr(entityid, 'event_id') -%}
-          {%- set data_utc = state_attr(entityid, 'publication_date') -%}
-          {%- set magnitudo = (state_attr(entityid, 'magnitude')|float) if not none else '0' -%}
-          {%- set code = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} -%}
-          {%- set color = code[state_attr('binary_sensor.lastquake', 'level')|int] -%}
-          {%- set lat = state_attr(entityid, 'lat') -%}
-          {%- set long = state_attr(entityid, 'long') -%}
+        #### TERREMOTI - ULTIME 24h 
+        [<img src="https://www.hsit.it/images/favicon.png"/> Hai Sentito Il Terremoto](http://www.haisentitoilterremoto.it/)
+
+        {%- set url = "http://shakemap.rm.ingv.it/shake4/data/{}/current/products/{}.jpg" -%}
+        {%- set url2 = "http://shakemap.ingv.it/shake4/data/{}/current/products/{}.jpg" -%}
+        {%- set entityid = 'binary_sensor.lastquake' -%}
+        {%- set id = state_attr(entityid, 'event_id') -%}
+        {%- set data_utc = state_attr(entityid, 'publication_date') -%}
+        {%- set magnitudo = (state_attr(entityid, 'magnitude')|float) if not none else '0' -%}
+        {%- set code = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} -%}
+        {%- set color = code[state_attr('binary_sensor.lastquake', 'level')|int] -%}
+        {%- set lat = state_attr(entityid, 'lat') -%}
+        {%- set long = state_attr(entityid, 'long') -%}
         <font>
 
-        **<font color="{{color}}">{{as_timestamp(data_utc)|timestamp_custom
-        ('%H:%M:%S del %d/%m/%Y')}}</font>**<br><br> Un terremoto di magnitudo
-        **<font color="{{color}}">{{magnitudo}}</font>**<br> è avvenuto nella
-        zona: [{{state_attr(entityid,
-        'region')}}](https://www.openstreetmap.org/?mlat={{lat}}&mlon={{long}}#map=12/{{lat}}/{{long}})<br>
-        a <font color="{{color}}">**{{state_attr(entityid,
-        'distance')}}**</font> km da casa,<br> con coordinate geografiche (lat,
-        long) {{lat}},{{long}}.<br> {{("Tu ti trovi a " ~ distance(lat, long,
-        person)) ~ " km dall'epicentro." if is_state(person, 'not_home') else
-        ''}} </font> {% if magnitudo >= 3 %}<br>
-        [Shakemap]({{url.format(id,'intensity')}}) ~ 
-        [PGA]({{url.format(id,'pga')}}) ~ [PGV]({{url.format(id,'pgv')}}) ~
-        [TvMap]({{url.format(id,'tvmap')}}) ~
-        [TvMap2]({{url.format(id,'tvmap_bare')}}) ~ 
-        [HaiSentitoIlTerremoto](http://eventi.haisentitoilterremoto.it/{{id}}/{{id}}_mcs.jpg)
+        **<font color="{{color}}">{{as_timestamp(data_utc)|timestamp_custom ('%H:%M:%S del %d/%m/%Y')}}</font>**<br><br>
+        Un terremoto di magnitudo **<font color="{{color}}">{{magnitudo}}</font>**<br>
+        è avvenuto nella zona: [{{state_attr(entityid, 'region')}}](https://www.openstreetmap.org/?mlat={{lat}}&mlon={{long}}#map=12/{{lat}}/{{long}})<br>
+        a <font color="{{color}}">**{{state_attr(entityid, 'distance')}}**</font> km da casa,<br>
+        con coordinate geografiche (lat, long) {{lat}},{{long}}.
+        {%for person in expand(states.person) %}
+        <br>{{"{} è a {} km dall'epicentro.".format(person.name, distance(lat, long, person.entity_id)) if is_state(person.entity_id, 'not_home') else ''}}<br>
+        {%endfor %}
+        </font>
+        {% if magnitudo >= 3 %}
+        [Intensity]({{url.format(id,'intensity')}}) ~ 
+        [PGA]({{url.format(id,'pga')}}) ~ [PGV]({{url.format(id,'pgv')}}) ~ [PSA0]({{url.format(id,'psa0p3')}}) ~ [PSA1]({{url.format(id,'psa1p0')}}) ~ 
+        [HaiSentitoIlTerremoto](http://eventi.haisentitoilterremoto.it/{{id}}/{{id}}_mcs.jpg)<br>
 
-        <!-- Scegli il titpo di immagine da visualizzare
-        [intensity,pga,pgv,tvmap,tvmap_bare] -->
-          <img src="{{url.format(id,'intensity')}}"/>
-          <!-- <img src="{{url.format(id,'pga')}}"/> -->
+        <a href="http://shakemap.rm.ingv.it/shake4/viewLeaflet.html?eventid={{id}}"><img src="{{url.format(id,'intensity')}}"></a>
+
         {% endif %}
 
-        <!-- 
+        <center>
+        <a href="http://terremoti.ingv.it/"> <img src="https://www.ingv.it/images/INGV_Acronimo_50.png" width="100" ></a>
+
+        <!-- Examples
           Map Google
           [{{state_attr(entityid, 'region')}}](http://maps.google.com/maps?z=8&q=loc:{{lat}}+{{long}})
           Map Open Streat Map
           [{{state_attr(entityid, 'region')}}](https://www.openstreetmap.org/?mlat={{lat}}&mlon={{long}}#map=8/{{lat}}/{{long}})
         -->
-    - type: 'custom:auto-entities'
+
+    - type: custom:auto-entities # CONDITIONAL ULTIMI {count} TERREMOTI
       show_empty: false
       sort:
-        attribute: publication_date
-        method: attribute
-        reverse: true
-        count: 3
-        first: 1
+        {
+          attribute: publication_date,
+          method: attribute,
+          reverse: true,
+          count: 4,
+          first: 0,
+        }
       filter:
         include:
           - entity_id: geo_location.*
             attributes:
               source: ingv_centro_nazionale_terremoti
       card:
-        type: markdown
+        type: entities
         entity_id: this.entity_id
-        style: |
-          ha-card {background: none; border-radius: 0px; box-shadow: none;}
-        content: "<center> <img src=\"http://terremoti.ingv.it/favicon.ico\" width=\"16\"/>  <a href=\"http://terremoti.ingv.it/\"> LISTA ULTIMI TERREMOTI </a></center> {% set url = \"http://shakemap.rm.ingv.it/shake/{}/download/{}.jpg\" %} {% set url2 = \"https://e.hsit.it/{}/{}_{}.jpg\" %} {% set code = {1:'White', 2:'Green', 3:'Yellow', 4:'Orange', 5:'Red'} %} {% for e in config.entities %} {% set id = state_attr(e.entity, 'event_id') %}<br>\n<font color=\"var(--disabled-text-color)\">{{state_attr(e.entity, 'publication_date').strftime(\"%d/%m %H:%M\") }}</font> <font color=\"{{code[state_attr(e.entity, 'magnitude')|int]}}\"> <ha-icon icon=\"{{state_attr(e.entity, 'icon')}}\"></ha-icon></font> {{state_attr(e.entity, 'friendly_name')}} \U0001F3E1➡ {{states(e.entity)}} Km\n{% if state_attr(e.entity, 'magnitude') >= 3 %} <center>  <a href=\"{{state_attr(e.entity, 'image_url')}}\"> <img src=\"{{state_attr(e.entity, 'image_url')}}\" height=\"50\"></a> <a href=\"{{url.format(id,'pga')}}\"> <img src=\"{{url.format(id,'pga')}}\" height=\"50\" ></a> <a href=\"{{url.format(id,'pgv')}}\"> <img src=\"{{url.format(id,'pgv')}}\" height=\"50\" ></a> <a href=\"{{url.format(id,'tvmap')}}\"> <img src=\"{{url.format(id,'tvmap')}}\" height=\"50\" ></a> <a href=\"{{url2.format(id,id,'mcs')}}\"> <img src=\"{{url2.format(id,id,'mcs')}}\" height=\"50\" ></a> <a href=\"{{url2.format(id,id,'filledMCS')}}\"> <img src=\"{{url2.format(id,id,'filledMCS')}}\" height=\"50\" ></a> <a href=\"{{url2.format(id,id,'emailMap')}}\"> <img src=\"{{url2.format(id,id,'emailMap')}}\" height=\"50\" ></a> </center>  {% endif %} {%- endfor %}"
+        card_mod:
+          style: |
+            ha-card {background: none; border-radius: 0px; box-shadow: none;}
 
 ```
 

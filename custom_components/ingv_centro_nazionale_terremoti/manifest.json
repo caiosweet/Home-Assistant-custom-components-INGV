@@ -3,7 +3,7 @@
     "name": "INGV Centro Nazionale Terremoti",
     "version": "2021.03.1",
     "documentation": "https://github.com/exxamalte/python-georss-ingv-centro-nazionale-terremoti-client",
-    "requirements": ["georss-ingv-centro-nazionale-terremoti-client==0.3"],
+    "requirements": ["georss-ingv-centro-nazionale-terremoti-client==0.4"],
     "issue_tracker": "https://github.com/caiosweet/Home-Assistant-custom-components-INGV/issues",
     "codeowners": ["@exxamalte", "@caiosweet"]
 }
