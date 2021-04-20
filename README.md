@@ -173,7 +173,7 @@ automation:
         zone: zone.geoalert
         event: enter
     condition: >-
-      {{((as_timestamp(utcnow())-as_timestamp(trigger.to_state.attributes.publication_date))/3600*60)|int < 60}}
+      {{ ((as_timestamp(utcnow()) - as_timestamp(trigger.to_state.attributes.publication_date))/3600*60)|int < 90 }}
     action:
       - service: notify.telegram
         data:
@@ -181,12 +181,22 @@ automation:
             🚧 Rilevato terremoto.
           message: >-
             {% set data_utc = trigger.to_state.attributes.publication_date %}
-            Rilevato terremoto di magnitudo: {{trigger.to_state.attributes.magnitude}} 
-            a una distanza di {{trigger.to_state.state}} Km da casa. Epicentro: {{trigger.to_state.attributes.region}} 
-            {{as_timestamp(data_utc)|timestamp_custom ('Data %d/%m/%Y Ore %H:%M:%S')}}
-            {% if trigger.to_state.attributes.image_url is defined and trigger.to_state.attributes.magnitude >= 3%}
-            http://shakemap.rm.ingv.it/shake4/data/{{trigger.to_state.attributes.event_id}}/current/products/intensity.jpg
+            Rilevato terremoto di magnitudo: {{ trigger.to_state.attributes.magnitude }} 
+            a una distanza di {{ trigger.to_state.state }} Km da casa. Epicentro: {{ trigger.to_state.attributes.region }} 
+            {{ as_timestamp(data_utc)|timestamp_custom ('Data %d/%m/%Y Ore %H:%M:%S') }}
+            {% if trigger.to_state.attributes.image_url is defined %}
+            {{ trigger.to_state.attributes.image_url }}
             {% endif %}
+      - choose:
+          - conditions: "{{ trigger.to_state.attributes.image_url is defined }}"
+            sequence:
+              - service: telegram_bot.send_photo
+                  data:
+                    url: "{{ trigger.to_state.attributes.image_url }}"
+                    caption: "{{ trigger.to_state.attributes.title }}"
+                    target: '12345'
+                    parse_mode: html
+                    timeout: 1000
 ```
 
 ## Example Lovelace Map Card
@@ -217,64 +227,63 @@ card:
       card_mod:
         style: |
           ha-card {background: none; border-radius: 0px; box-shadow: none;}
+          ha-markdown {padding-bottom: 0 !important;}
       content: >-
-        #### TERREMOTI - ULTIME 24h  [<img
-        src="https://www.hsit.it/images/favicon.png"/> Hai Sentito Il
-        Terremoto](http://www.haisentitoilterremoto.it/)
+        ___
 
-        <!-- Setting -->
-          {%- set person = 'person.claudio' -%}
-          {%- set url = "http://shakemap.rm.ingv.it/shake4/data/{}/current/products/{}.jpg" -%}
-          {%- set entityid = 'binary_sensor.lastquake' -%}
-          {%- set id = state_attr(entityid, 'event_id') -%}
-          {%- set data_utc = state_attr(entityid, 'publication_date') -%}
-          {%- set magnitudo = (state_attr(entityid, 'magnitude')|float) if not none else '0' -%}
-          {%- set code = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} -%}
-          {%- set color = code[state_attr('binary_sensor.lastquake', 'level')|int] -%}
-          {%- set lat = state_attr(entityid, 'lat') -%}
-          {%- set long = state_attr(entityid, 'long') -%}
+        #### TERREMOTI - ULTIME 24h 
+        [<img src="https://www.hsit.it/images/favicon.png"/> Hai Sentito Il Terremoto](http://www.haisentitoilterremoto.it/)
+
+        {%- set url = "http://shakemap.rm.ingv.it/shake4/data/{}/current/products/{}.jpg" -%}
+        {%- set url2 = "http://shakemap.ingv.it/shake4/data/{}/current/products/{}.jpg" -%}
+        {%- set entityid = 'binary_sensor.lastquake' -%}
+        {%- set id = state_attr(entityid, 'event_id') -%}
+        {%- set data_utc = state_attr(entityid, 'publication_date') -%}
+        {%- set magnitudo = (state_attr(entityid, 'magnitude')|float) if not none else '0' -%}
+        {%- set code = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} -%}
+        {%- set color = code[state_attr('binary_sensor.lastquake', 'level')|int] -%}
+        {%- set lat = state_attr(entityid, 'lat') -%}
+        {%- set long = state_attr(entityid, 'long') -%}
         <font>
 
-        **<font color="{{color}}">{{as_timestamp(data_utc)|timestamp_custom
-        ('%H:%M:%S del %d/%m/%Y')}}</font>**<br><br> Un terremoto di magnitudo
-        **<font color="{{color}}">{{magnitudo}}</font>**<br> è avvenuto nella
-        zona: [{{state_attr(entityid,
-        'region')}}](https://www.openstreetmap.org/?mlat={{lat}}&mlon={{long}}#map=12/{{lat}}/{{long}})<br>
-        a <font color="{{color}}">**{{state_attr(entityid,
-        'distance')}}**</font> km da casa,<br> con coordinate geografiche (lat,
-        long) {{lat}},{{long}}.<br> {{("Tu ti trovi a " ~ distance(lat, long,
-        person)) ~ " km dall'epicentro." if is_state(person, 'not_home') else
-        ''}} </font> {% if magnitudo >= 3 %}<br>
-        [Shakemap]({{url.format(id,'intensity')}}) ~ 
-        [PGA]({{url.format(id,'pga')}}) ~ [PGV]({{url.format(id,'pgv')}}) ~
-        [TvMap]({{url.format(id,'tvmap')}}) ~
-        [TvMap2]({{url.format(id,'tvmap_bare')}}) ~ 
-        [HaiSentitoIlTerremoto](http://eventi.haisentitoilterremoto.it/{{id}}/{{id}}_mcs.jpg)
+        **<font color="{{color}}">{{as_timestamp(data_utc)|timestamp_custom ('%H:%M:%S del %d/%m/%Y')}}</font>**<br><br>
+        Un terremoto di magnitudo **<font color="{{color}}">{{magnitudo}}</font>**<br>
+        è avvenuto nella zona: [{{state_attr(entityid, 'region')}}](https://www.openstreetmap.org/?mlat={{lat}}&mlon={{long}}#map=12/{{lat}}/{{long}})<br>
+        a <font color="{{color}}">**{{state_attr(entityid, 'distance')}}**</font> km da casa,<br>
+        con coordinate geografiche (lat, long) {{lat}},{{long}}.
+        {%for person in expand(states.person) %}
+        <br>{{"{} è a {} km dall'epicentro.".format(person.name, distance(lat, long, person.entity_id)) if is_state(person.entity_id, 'not_home') else ''}}<br>
+        {%endfor %}
+        </font>
+        {% if magnitudo >= 3 %}
+        [Intensity]({{url.format(id,'intensity')}}) ~ 
+        [PGA]({{url.format(id,'pga')}}) ~ [PGV]({{url.format(id,'pgv')}}) ~ [PSA0]({{url.format(id,'psa0p3')}}) ~ [PSA1]({{url.format(id,'psa1p0')}}) ~ 
+        [HaiSentitoIlTerremoto](http://eventi.haisentitoilterremoto.it/{{id}}/{{id}}_mcs.jpg)<br>
 
-        <!-- 
-          Scegli il titpo di immagine principale da visualizzare
-          tra queste opzioni [intensity|pga|pgv|psa0p3|psa1p0|psa3p0] 
-          example <img src="{{url.format(id,'pga')}}"/> 
-        -->
-          <img src="{{url.format(id,'intensity')}}"/>
+        <a href="http://shakemap.rm.ingv.it/shake4/viewLeaflet.html?eventid={{id}}"><img src="{{url.format(id,'intensity')}}"></a>
+
         {% endif %}
 
-        <!-- 
-          Example Map Google
+        <center>
+        <a href="http://terremoti.ingv.it/"> <img src="https://www.ingv.it/images/INGV_Acronimo_50.png" width="100" ></a>
+
+        <!-- Examples
+          Map Google
           [{{state_attr(entityid, 'region')}}](http://maps.google.com/maps?z=8&q=loc:{{lat}}+{{long}})
-          Example Map Open Streat Map
+          Map Open Streat Map
           [{{state_attr(entityid, 'region')}}](https://www.openstreetmap.org/?mlat={{lat}}&mlon={{long}}#map=8/{{lat}}/{{long}})
         -->
-          <center><img src="http://terremoti.ingv.it/favicon.ico" width="16"/> 
-          <a href="http://terremoti.ingv.it/"> LISTA TERREMOTI </a>
-    - type: 'custom:auto-entities'
+
+    - type: custom:auto-entities # CONDITIONAL ULTIMI {count} TERREMOTI
       show_empty: false
       sort:
-        attribute: publication_date
-        method: attribute
-        reverse: true
-        count: 3
-        first: 1
+        {
+          attribute: publication_date,
+          method: attribute,
+          reverse: true,
+          count: 4,
+          first: 0,
+        }
       filter:
         include:
           - entity_id: geo_location.*
@@ -282,11 +291,10 @@ card:
               source: ingv_centro_nazionale_terremoti
       card:
         type: entities
+        entity_id: this.entity_id
         card_mod:
-          style: >
-            ha-card {padding: 0px; background: none; border-radius: 0px;
-            box-shadow: none;}
-
+          style: |
+            ha-card {background: none; border-radius: 0px; box-shadow: none;}
 
 ```
 
