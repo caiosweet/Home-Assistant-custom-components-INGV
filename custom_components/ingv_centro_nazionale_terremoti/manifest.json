@@ -1,5 +1,6 @@
 {
     "domain": "ingv_centro_nazionale_terremoti",
+    "iot_class": "cloud_polling",
     "name": "INGV Centro Nazionale Terremoti",
     "version": "2021.03.1",
     "documentation": "https://github.com/exxamalte/python-georss-ingv-centro-nazionale-terremoti-client",
