@@ -33,4 +33,4 @@ jobs:
         with:
           category: integration
           comment: false
-          ignore: brands wheels
+          #ignore: brands wheels
