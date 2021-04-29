@@ -4,7 +4,7 @@
   <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/brand/logo_128.png'/>
 </p>
 
-[![hacs][hacsbadge]][hacs] [![Validate](https://github.com/caiosweet/Home-Assistant-custom-components-INGV/actions/workflows/validate.yml/badge.svg)](https://github.com/caiosweet/Home-Assistant-custom-components-INGV/actions/workflows/validate.yml)
+[![hacs][hacsbadge]][hacs] [![Validate](https://github.com/caiosweet/Home-Assistant-custom-components-INGV/actions/workflows/validate.yaml/badge.svg)](https://github.com/caiosweet/Home-Assistant-custom-components-INGV/actions/workflows/validate.yaml)
 
 [![GitHub latest release]][githubrelease] ![GitHub Release Date] [![Maintenancebadge]][Maintenance] [![GitHub issuesbadge]][GitHub issues]
 
