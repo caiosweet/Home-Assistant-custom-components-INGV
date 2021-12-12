@@ -90,7 +90,7 @@ geo_location:
 
 ___
 
-## [Other information](https://hassiohelp.eu/2019/10/06/package-eventi-naturali/)
+## [Other information](https://hassiohelp.eu/2019/10/06/home-assistant-package-eventi-naturali/)
 
 ## [My Package](https://github.com/caiosweet/Package-Natural-Events/tree/main/config/packages)
 
