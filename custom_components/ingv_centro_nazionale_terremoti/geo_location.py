@@ -145,6 +145,7 @@ class IngvCentroNazionaleTerremotiLocationEvent(GeolocationEvent):
         self._distance = None
         self._latitude = None
         self._longitude = None
+        self._depth = None
         self._attribution = None
         self._region = None
         self._magnitude = None
@@ -197,6 +198,7 @@ class IngvCentroNazionaleTerremotiLocationEvent(GeolocationEvent):
         self._distance = feed_entry.distance_to_home
         self._latitude = feed_entry.coordinates[0]
         self._longitude = feed_entry.coordinates[1]
+        self._depth = feed_entry.depth
         self._attribution = feed_entry.attribution
         self._region = feed_entry.region
         self._magnitude = feed_entry.magnitude
@@ -240,6 +242,11 @@ class IngvCentroNazionaleTerremotiLocationEvent(GeolocationEvent):
         """Return longitude value of this external event."""
         return self._longitude
 
+    @property
+    def depth(self) -> float | None:
+        """Return depth value of this external event."""
+        return self._depth
+    
     @property
     def extra_state_attributes(self):
         """Return the device state attributes."""
