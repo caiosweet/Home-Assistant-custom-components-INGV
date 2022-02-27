@@ -1,14 +1,14 @@
 """Support for INGV Centro Nazionale Terremoti (Earthquakes) Feeds."""
 from __future__ import annotations
 
-from datetime import timedelta
 import logging
+from datetime import timedelta
 
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from georss_ingv_centro_nazionale_terremoti_client import (
     IngvCentroNazionaleTerremotiFeedManager,
 )
-import voluptuous as vol
-
 from homeassistant.components.geo_location import PLATFORM_SCHEMA, GeolocationEvent
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
@@ -19,10 +19,11 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_START,
     LENGTH_KILOMETERS,
 )
-from homeassistant.core import callback
-import homeassistant.helpers.config_validation as cv
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect, dispatcher_send
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import track_time_interval
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,7 +56,12 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
+def setup_platform(
+    hass: HomeAssistant,
+    config: ConfigType,
+    add_entities: AddEntitiesCallback,
+    discovery_info: DiscoveryInfoType | None = None,
+) -> None:
     """Set up the INGV Centro Nazionale Terremoti Feed platform."""
     scan_interval = config.get(CONF_SCAN_INTERVAL, SCAN_INTERVAL)
     coordinates = (
@@ -125,11 +131,15 @@ class IngvCentroNazionaleTerremotiFeedEntityManager:
 
     def _update_entity(self, external_id):
         """Update entity."""
-        dispatcher_send(self._hass, f"ingv_centro_nazionale_terremoti_update_{external_id}")
+        dispatcher_send(
+            self._hass, f"ingv_centro_nazionale_terremoti_update_{external_id}"
+        )
 
     def _remove_entity(self, external_id):
         """Remove entity."""
-        dispatcher_send(self._hass, f"ingv_centro_nazionale_terremoti_delete_{external_id}")
+        dispatcher_send(
+            self._hass, f"ingv_centro_nazionale_terremoti_delete_{external_id}"
+        )
 
 
 class IngvCentroNazionaleTerremotiLocationEvent(GeolocationEvent):

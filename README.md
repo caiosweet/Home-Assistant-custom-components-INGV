@@ -230,14 +230,16 @@ hours_to_show: 72
 Required custom auto-entities, card-mod and [binary_sensor.lastquake](#example-binary-sensor)
 
 ```yaml
-type: conditional
+type: conditional # TERREMOTO conditional
 conditions:
   - entity: binary_sensor.lastquake
-    state: 'on'
+    state: "on"
 card:
   type: vertical-stack
   cards:
     - type: markdown
+      entity_id:
+        - binary_sensor.lastquake
       card_mod:
         style: |
           ha-card {background: none; border-radius: 0px; box-shadow: none;}
@@ -245,43 +247,59 @@ card:
       content: >-
         ___
 
-        #### TERREMOTI - ULTIME 24h 
+        #### TERREMOTI
         [<img src="https://www.hsit.it/images/favicon.png"/> Hai Sentito Il Terremoto](http://www.haisentitoilterremoto.it/)
 
         {%- set url = "http://shakemap.rm.ingv.it/shake4/data/{}/current/products/{}.jpg" -%}
         {%- set url2 = "http://shakemap.ingv.it/shake4/data/{}/current/products/{}.jpg" -%}
         {%- set entityid = 'binary_sensor.lastquake' -%}
         {%- set id = state_attr(entityid, 'event_id') -%}
-        {%- set data_utc = state_attr(entityid, 'publication_date') -%}
-        {%- set magnitudo = (state_attr(entityid, 'magnitude')|float) if not none else '0' -%}
-        {%- set code = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} -%}
-        {%- set color = code[state_attr('binary_sensor.lastquake', 'level')|int] -%}
+        {%- set magnitudo = state_attr(entityid, 'magnitude')|float(default=0) -%}
+        {%- set code = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red'} -%}
+        {%- set color = code[state_attr('binary_sensor.lastquake', 'level')|int(0)] -%}
         {%- set lat = state_attr(entityid, 'lat') -%}
         {%- set long = state_attr(entityid, 'long') -%}
+        {%- set utc = as_timestamp(state_attr(entityid, 'publication_date'),0) -%}
         <font>
 
-        **<font color="{{color}}">{{as_timestamp(data_utc)|timestamp_custom ('%H:%M:%S del %d/%m/%Y')}}</font>**<br><br>
+        **<font color="{{color}}">{{ utc|timestamp_custom('%H:%M:%S del %d/%m/%Y') if utc is not none else 0}}</font>**<br><br>
         Un terremoto di magnitudo **<font color="{{color}}">{{magnitudo}}</font>**<br>
         è avvenuto nella zona: [{{state_attr(entityid, 'region')}}](https://www.openstreetmap.org/?mlat={{lat}}&mlon={{long}}#map=12/{{lat}}/{{long}})<br>
         a <font color="{{color}}">**{{state_attr(entityid, 'distance')}}**</font> km da casa,<br>
-        con coordinate geografiche (lat, long) {{lat}},{{long}}.
-        {%for person in expand(states.person) %}
-        <br>{{"{} è a {} km dall'epicentro.".format(person.name, distance(lat, long, person.entity_id)) if is_state(person.entity_id, 'not_home') else ''}}<br>
-        {%endfor %}
-        </font>
+        con coordinate epicentrali {{lat}}, {{long}}.
+
+        {% set state_dict = {'home': 'casa', 'not_home': 'fuori casa', 'unknown': '❓'} %}
+        {% for person in expand(states.person) %}
+        {% if 'latitude' in person.attributes and person.attributes.latitude is not none %}
+        {% set distanza = distance(lat|default(0), long|default(0), person.entity_id|default(0)) %}
+        <br>{{"📍{} ({}) a circa {} km dall'epicentro.".format(person.name|upper, state_dict.get(person.state, person.state), distanza|round(1, default=0)) }}
+        {% else %}
+        <br>{{"📍{} ({})".format(person.name|upper, state_dict.get(person.state, person.state)) }}
+        {% endif %}
+        {% endfor %}</font><br>
+
         {% if magnitudo >= 3 %}
         [Intensity]({{url.format(id,'intensity')}}) ~ 
         [PGA]({{url.format(id,'pga')}}) ~ [PGV]({{url.format(id,'pgv')}}) ~ [PSA0]({{url.format(id,'psa0p3')}}) ~ [PSA1]({{url.format(id,'psa1p0')}}) ~ 
-        [HaiSentitoIlTerremoto](http://eventi.haisentitoilterremoto.it/{{id}}/{{id}}_mcs.jpg)<br>
+        [HSIT](http://eventi.haisentitoilterremoto.it/{{id}}/{{id}}_mcs.jpg)<br>
 
-        <a href="http://shakemap.rm.ingv.it/shake4/viewLeaflet.html?eventid={{id}}"><img src="{{url.format(id,'intensity')}}"></a>
+        <!-- Example 
+          Markdown
+          [![](/local/hassiohelp/downloads/lastquake.jpg)](http://shakemap.rm.ingv.it/shake4/viewLeaflet.html?eventid={{id}})
+        -->
 
-        {% endif %}
+        {% if is_state('binary_sensor.download_file', 'on') %}
+        <a href="http://shakemap.rm.ingv.it/shake4/view.html?eventid={{id}}"><img src="/local/hassiohelp/downloads/lastquake.jpg?t='{{now().timestamp()}}'"></a>
+        {% else %}
+        <a href="http://shakemap.rm.ingv.it/shake4/view.html?eventid={{id}}"><img src="http://shakemap.rm.ingv.it/shake4/data/{{id}}/current/products/pga.jpg"></a>
+        {% endif %}{% endif %}
 
         <center>
         <a href="http://terremoti.ingv.it/"> <img src="https://www.ingv.it/images/INGV_Acronimo_50.png" width="100" ></a>
 
         <!-- Examples
+          Interactive Map
+          http://shakemap.rm.ingv.it/shake4/viewLeaflet.html?eventid=
           Map Google
           [{{state_attr(entityid, 'region')}}](http://maps.google.com/maps?z=8&q=loc:{{lat}}+{{long}})
           Map Open Streat Map
