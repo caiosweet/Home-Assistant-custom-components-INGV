@@ -1,0 +1,32 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Inserisci i tuoi dati INGV.",
+                "description": "Configura l'istanza di INGV Terremoti",
+                "data": {
+                    "location": "Localit\u00e0",
+                    "latitude": "Latitudine",
+                    "longitude": "Longitudine"
+                }
+            }
+        },
+        "abort": {
+            "already_configured": "Il servizio \u00e8 gi\u00e0 configurato"
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Opzioni INGV",
+                "description": "Configura le opzioni INGV Terremoti",
+                "data": {
+                    "minimum_magnitude": "Magnitudo minima",
+                    "radius": "Raggio",
+                    "scan_interval": "Intervallo di aggiornamento (secondi)",
+                    "start_time": "Delta dell'ora di inizio (ore)"
+                }
+            }
+        }
+    }
+}

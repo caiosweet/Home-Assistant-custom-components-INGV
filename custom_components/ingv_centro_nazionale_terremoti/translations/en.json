@@ -1,0 +1,32 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Fill in your INGV details.",
+                "description": "Set up INGV Earthquakes integration",
+                "data": {
+                    "location": "Location",
+                    "latitude": "Latitude",
+                    "longitude": "Longitude"
+                }
+            }
+        },
+        "abort": {
+            "already_configured": "Service is already configured"
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "INGV Options",
+                "description": "Set up INGV Earthquakes integration options",
+                "data": {
+                    "minimum_magnitude": "Minimum magnitude",
+                    "radius": "Radius",
+                    "scan_interval": "Update interval (Seconds)",
+                    "start_time": "Start time delta (hours)"
+                }
+            }
+        }
+    }
+}

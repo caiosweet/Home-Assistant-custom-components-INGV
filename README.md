@@ -1,4 +1,4 @@
-# INGV Terremoti
+# INGV Earthquakes
 
 <p class='img'>
   <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/brand/logo_128.png'/>
@@ -8,31 +8,41 @@
 
 [![GitHub latest release]][githubrelease] ![GitHub Release Date] [![Maintenancebadge]][Maintenance] [![GitHub issuesbadge]][GitHub issues]
 
-[![Websitebadge]][website] [![Forum][forumbadge]][forum] [![telegrambadge]][telegram] [![facebookbadge]][facebook] 
+[![Websitebadge]][website] [![Forum][forumbadge]][forum] [![telegrambadge]][telegram] [![facebookbadge]][facebook]
 
 [![Don't buy me a coffee](https://img.shields.io/static/v1.svg?label=Don't%20buy%20me%20a%20coffee&message=🔔&color=black&logo=buy%20me%20a%20coffee&logoColor=white&labelColor=6f4e37)](https://paypal.me/hassiohelp)
 
-Instructions on how to integrate the Istituto Nazionale di Geofisica e Vulcanologia (Earthquakes) Feed feed into Home Assistant.
+Instructions on how to integrate the INGV Earthquakes feed into Home Assistant.
 
 All credit goes to Malte Franken [@exxamalte](https://github.com/exxamalte).
 
-The `ingv_centro_nazionale_terremoti` platform lets you integrate a GeoRSS feed provided by the 
-Italian [Istituto Nazionale di Geofisica e Vulcanologia](http://www.ingv.it/it/) with information 
-about seismic events like earthquakes on the Italian Peninsula. 
-It retrieves incidents from a feed and shows information of those 
+The `ingv_centro_nazionale_terremoti` integration lets you use a QuakeML feeds provided by the
+Italian [Istituto Nazionale di Geofisica e Vulcanologia](http://www.ingv.it/it/) with information
+about seismic events like earthquakes on the Italian Peninsula.
+It retrieves incidents from a feed and shows information of those
 incidents filtered by distance to Home Assistant's location.
 
-Entities are generated, updated and removed automatically with each update 
-from the feed. Each entity defines latitude and longitude and will be shown 
-on the default map automatically, or on a map card by defining the source 
-`ingv_centro_nazionale_terremoti`. The distance in kilometers is available as the state 
+Entities are generated, updated and removed automatically with each update
+from the feed. Each entity defines latitude and longitude and will be shown
+on the default map automatically, or on a map card by defining the source
+`ingv_centro_nazionale_terremoti`. The distance in kilometers is available as the state
 of each entity.
 
 <p class='img'>
   <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/map.png' />
 </p>
 
-The data is updated every 5 minutes.
+The data is updated every 5 minutes and retrieve all events from the last 24 hours by default.
+
+<div class='note'>
+
+The material used by this integration is provided under the [Creative Commons Attribution 4.0 International](http://creativecommons.org/licenses/by/4.0/).
+It has only been modified for the purpose of presenting the material in Home Assistant.
+Please refer to the [creator's disclaimer notice](hhttp://terremoti.ingv.it/en/webservices_and_software) and [Terms of service](http://www.fdsn.org/webservices/) for more information.
+
+We acknowledge the INGV and ISIDe Working Group at National Earthquake Observatory project and its sponsors by the Italian Presidenza del Consiglio dei Ministri, Dipartimento della Protezione Civile, for providing data/images used in this integration.
+
+</div>
 
 ## How to install
 
@@ -41,60 +51,100 @@ The data is updated every 5 minutes.
     you can copy the entire  **ingv_centro_nazionale_terremoti** folder into **custom_components** folder in your root directory.
     You will need to create the dir **custom_components** if this is your first custom component.
 2. Restart Home Assistant.
-3. Then, add the following lines to your `configuration.yaml`:
+
+## Configuration
+
+### Config flow user interface
+
+To configure this integration go to: `Configurations` -> `Integrations` -> `ADD INTEGRATIONS` button, search for `INGV` and configure the component.
+
+You can also use following [My Home Assistant](http://my.home-assistant.io/) link
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=ingv_centro_nazionale_terremoti)
+
+### Config yaml
+
+1. Add the following lines to your `configuration.yaml`:
 
    ```yaml
     # Example configuration.yaml entry
-    geo_location:
-      - platform: ingv_centro_nazionale_terremoti
+    ingv_centro_nazionale_terremoti:
+        location: "Home"
    ```
 
-4. Save it.
-5. Restart again Home Assistant.
+2. Save it.
+3. Restart again Home Assistant.
 
 > NOTE:
 > In an environment other than HassOS, you will probably need to install the dependencies manually.
 > Activate Python environment Home Assistant is running in and use following command:
 >
-> `python3 -m pip install georss-ingv-centro-nazionale-terremoti-client`
+> `python3 -m pip install aio_quakeml_ingv_centro_nazionale_terremoti_client`
 
 ### CONFIGURATION VARIABLES
 
 | Variables          | Type        | Requirement   | Default   |  Description |
 |--------------------|-------------|---------------|------------|--------------|
-|**minimum_magnitude**| float | optional | 0.0 | The minimum magnitude of an earthquake to be included. 
-|**radius**| float | optional | 50.0 | The distance in kilometers around Home Assistant's coordinates in which seismic events are included.
+|**location**| string | optional | Location name defined in your `configuration.yaml` | Location name.
 |**latitude**| string | optional | Latitude defined in your `configuration.yaml` | Latitude of the coordinates around which events are considered.
 |**longitude**| string | optional | Longitude defined in your `configuration. yaml` | Longitude of the coordinates around which events are considered.
+|**radius**| float | optional | 50.0 | The distance in kilometers around Home Assistant's coordinates in which seismic events are included.
+|**minimum_magnitude**| float | optional | 3.0 | The minimum magnitude of an earthquake to be included.
+|**scan_interval**| int | optional | 300 | The time in seconds for each update.
+|**start_time**| int | optional | 24 | The start-time delta in hours. (ex last 24 hours)
 
 ## State Attributes
 
-The following state attributes are available for each entity in addition to 
-the standard ones:
+The following state attributes are available for each entity in addition to the standard ones:
 
 | Attribute          | Description |
 |--------------------|-------------|
 | latitude           | Latitude of the earthquake. |
 | longitude          | Longitude of the earthquake. |
 | source             | `ingv_centro_nazionale_terremoti` to be used in conjunction with `geo_location` automation trigger. |
-| external_id        | The external ID used in the feed to identify the earthquake in the feed. |
-| title              | Original title from the feed. |
 | region             | Textual description of named geographic region near to the event. |
 | magnitude          | Reported magnitude of the earthquake. |
+| depth              | The depth of the quake in km. |
+| status             | The Evaluation Status of the quake (preliminary, confirmed, reviewed, final, rejected). |
+| mode               | The Evaluation Mode of the quake (manual or automatic). |
 | publication_date   | Date and time when this event occurred. |
-| event_id           | Return the short id of the event. |
-| image_url          | URL to a map supplied in the feed marking the location of the event. This could for example be used in notifications. **Images are only available for magnitude >= 3**. |
+| event_id           | Return the short id used in the feed to identify the earthquake in the feed. |
+| image_url          | URL for a map not provided in the feed that marks the location of the event. This could for example be used in notifications. **Images are only available for magnitude >= 3**. |
+
+![geo_location](https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/geo_location.png)
+
+## Sensor
+
+This integration automatically creates a sensor that shows how many entities
+are currently managed by this integration. In addition to that the sensor has
+some useful attributes that indicate the currentness of the data retrieved
+from the feed.
+
+![sensor](https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/sensor.png)
+
+| Attribute              | Description |
+|------------------------|-------------|
+| status                 | Status of last update from the feed ("OK" or "ERROR").  |
+| last update            | Timestamp of the last update from the feed.  |
+| last update successful | Timestamp of the last successful update from the feed.  |
+| last timestamp         | Timestamp of the latest entry from the feed.  |
+| created                | Number of entities that were created during last update (optional).  |
+| updated                | Number of entities that were updated during last update (optional).  |
+| removed                | Number of entities that were removed during last update (optional).  |
 
 ## Full Configuration
 
 ```yaml
 # Example configuration.yaml entry
-geo_location:
-  - platform: ingv_centro_nazionale_terremoti
-    radius: 100
-    minimum_magnitude: 2.0
-    latitude: 41.89
-    longitude: 12.51
+ingv_centro_nazionale_terremoti:
+  location: "Home"
+  latitude: 41.89
+  longitude: 12.51
+  radius: 100
+  minimum_magnitude: 2.0
+  scan_interval: 300
+  start_time: 24
+
 ```
 
 ___
@@ -102,63 +152,6 @@ ___
 ## [Other information](https://hassiohelp.eu/2019/10/06/home-assistant-package-eventi-naturali/)
 
 ## [My Package](https://github.com/caiosweet/Package-Natural-Events/tree/main/config/packages)
-
-## Example Binary Sensor
-
-```yaml
-binary_sensor:
-  - platform: template
-    sensors:
-      lastquake:
-        friendly_name: Evento terremoto
-        device_class: vibration
-        # availability_template: False
-        value_template: >-
-          {% set last_date = states.geo_location
-            | selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-            | sort(attribute='attributes.publication_date')
-            | map(attribute='attributes.publication_date') |list|last|default %}
-          {{ ((as_timestamp(utcnow())-as_timestamp(last_date))/3600) <= 24 if last_date else False }}
-        attribute_templates:
-          distance: >-
-            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='state')|list|last|default}}
-          lat: >-
-            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.latitude')|list|last|default}}
-          long: >-
-            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.longitude')|list|last|default}}
-          title: >-
-            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.title')|list|last|default}}
-          region: >-
-            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.region')|list|last|default}}
-          magnitude: >-
-            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.magnitude')|list|last|default}}
-          publication_date: >-
-            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.publication_date')|list|last|default}}
-          event_id: >-
-            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.event_id')|list|last|default}}
-          image_url: >-
-            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.image_url')|list|last|default}}
-          attribution: >-
-            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.attribution')|list|last|default}}
-          level: >-
-            {%set m = states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-              |sort(attribute='attributes.publication_date')|map(attribute='attributes.magnitude')|list|last|default(0)%}
-              {% set m = m|float %}
-              {%if 0<=m<=1.9%}0{%elif 2<=m<=2.9%}1{%elif 3<=m<=3.9%}2{%elif 4<=m<=5.9%}3{%else%}4{%endif%}
-          external_id: >-
-            {{states.geo_location|selectattr('attributes.source','eq','ingv_centro_nazionale_terremoti')
-            |sort(attribute='attributes.publication_date')|map(attribute='attributes.external_id')|list|last|default|replace('smi:','')}}
-```
 
 ## Example Zone
 
@@ -175,40 +168,26 @@ zone:
 
 ```yaml
 automation:
-  - alias: Quake Notifications
-    mode: queued
-    max_exceeded: silent
-    initial_state: true
-    trigger:
-      - platform: geo_location
-        source: "ingv_centro_nazionale_terremoti"
-        zone: zone.geoalert
-        event: enter
-    condition: >-
-      {{ ((as_timestamp(utcnow()) - as_timestamp(trigger.to_state.attributes.publication_date))/3600*60)|int < 90 }}
-    action:
-      - service: notify.telegram
-        data:
-          title: >-
-            🚧 Rilevato terremoto.
-          message: >-
-            {% set data_utc = trigger.to_state.attributes.publication_date %}
-            Rilevato terremoto di magnitudo: {{ trigger.to_state.attributes.magnitude }} 
-            a una distanza di {{ trigger.to_state.state }} Km da casa. Epicentro: {{ trigger.to_state.attributes.region }} 
-            {{ as_timestamp(data_utc)|timestamp_custom ('Data %d/%m/%Y Ore %H:%M:%S') }}
-            {% if trigger.to_state.attributes.image_url is defined %}
-            {{ trigger.to_state.attributes.image_url }}
-            {% endif %}
-      - choose:
-          - conditions: "{{ trigger.to_state.attributes.image_url is defined }}"
-            sequence:
-              - service: telegram_bot.send_photo
-                  data:
-                    url: "{{ trigger.to_state.attributes.image_url }}"
-                    caption: "{{ trigger.to_state.attributes.title }}"
-                    target: '12345'
-                    parse_mode: html
-                    timeout: 1000
+  alias: INGV Quakes Notification Send
+  description: ''
+  trigger:
+    - platform: geo_location
+      source: ingv_centro_nazionale_terremoti
+      zone: zone.geoalert
+      event: enter
+  condition: []
+  action:
+    - service: notify.discord
+      data:
+        title: New INGV Quakes
+        message: |
+          Rilevato terremoto a una distanza di {{trigger.to_state.state}} Km da
+          casa. Magnitudo: {{trigger.to_state.attributes.magnitude}}  Epicentro:
+          {{trigger.to_state.attributes.region}} Profondità:
+          {{trigger.to_state.attributes.depth}} km. {% set data_utc =
+          trigger.to_state.attributes.publication_date %}
+          {{as_timestamp(data_utc)|timestamp_custom('%H:%M:%S - %d/%m/%Y')}}
+  mode: queued
 ```
 
 ## Example Lovelace Map Card
@@ -225,111 +204,6 @@ aspect_ratio: '16:9'
 hours_to_show: 72
 ```
 
-## Example My Lovelace card
-
-Required custom auto-entities, card-mod and [binary_sensor.lastquake](#example-binary-sensor)
-
-```yaml
-type: conditional # TERREMOTO conditional
-conditions:
-  - entity: binary_sensor.lastquake
-    state: "on"
-card:
-  type: vertical-stack
-  cards:
-    - type: markdown
-      entity_id:
-        - binary_sensor.lastquake
-      card_mod:
-        style: |
-          ha-card {background: none; border-radius: 0px; box-shadow: none;}
-          ha-markdown {padding-bottom: 0 !important;}
-      content: >-
-        ___
-
-        #### TERREMOTI
-        [<img src="https://www.hsit.it/images/favicon.png"/> Hai Sentito Il Terremoto](http://www.haisentitoilterremoto.it/)
-
-        {%- set url = "http://shakemap.rm.ingv.it/shake4/data/{}/current/products/{}.jpg" -%}
-        {%- set url2 = "http://shakemap.ingv.it/shake4/data/{}/current/products/{}.jpg" -%}
-        {%- set entityid = 'binary_sensor.lastquake' -%}
-        {%- set id = state_attr(entityid, 'event_id') -%}
-        {%- set magnitudo = state_attr(entityid, 'magnitude')|float(default=0) -%}
-        {%- set code = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red'} -%}
-        {%- set color = code[state_attr('binary_sensor.lastquake', 'level')|int(0)] -%}
-        {%- set lat = state_attr(entityid, 'lat') -%}
-        {%- set long = state_attr(entityid, 'long') -%}
-        {%- set utc = as_timestamp(state_attr(entityid, 'publication_date'),0) -%}
-        <font>
-
-        **<font color="{{color}}">{{ utc|timestamp_custom('%H:%M:%S del %d/%m/%Y') if utc is not none else 0}}</font>**<br><br>
-        Un terremoto di magnitudo **<font color="{{color}}">{{magnitudo}}</font>**<br>
-        è avvenuto nella zona: [{{state_attr(entityid, 'region')}}](https://www.openstreetmap.org/?mlat={{lat}}&mlon={{long}}#map=12/{{lat}}/{{long}})<br>
-        a <font color="{{color}}">**{{state_attr(entityid, 'distance')}}**</font> km da casa,<br>
-        con coordinate epicentrali {{lat}}, {{long}}.
-
-        {% set state_dict = {'home': 'casa', 'not_home': 'fuori casa', 'unknown': '❓'} %}
-        {% for person in expand(states.person) %}
-        {% if 'latitude' in person.attributes and person.attributes.latitude is not none %}
-        {% set distanza = distance(lat|default(0), long|default(0), person.entity_id|default(0)) %}
-        <br>{{"📍{} ({}) a circa {} km dall'epicentro.".format(person.name|upper, state_dict.get(person.state, person.state), distanza|round(1, default=0)) }}
-        {% else %}
-        <br>{{"📍{} ({})".format(person.name|upper, state_dict.get(person.state, person.state)) }}
-        {% endif %}
-        {% endfor %}</font><br>
-
-        {% if magnitudo >= 3 %}
-        [Intensity]({{url.format(id,'intensity')}}) ~ 
-        [PGA]({{url.format(id,'pga')}}) ~ [PGV]({{url.format(id,'pgv')}}) ~ [PSA0]({{url.format(id,'psa0p3')}}) ~ [PSA1]({{url.format(id,'psa1p0')}}) ~ 
-        [HSIT](http://eventi.haisentitoilterremoto.it/{{id}}/{{id}}_mcs.jpg)<br>
-
-        <!-- Example 
-          Markdown
-          [![](/local/hassiohelp/downloads/lastquake.jpg)](http://shakemap.rm.ingv.it/shake4/viewLeaflet.html?eventid={{id}})
-        -->
-
-        {% if is_state('binary_sensor.download_file', 'on') %}
-        <a href="http://shakemap.rm.ingv.it/shake4/view.html?eventid={{id}}"><img src="/local/hassiohelp/downloads/lastquake.jpg?t='{{now().timestamp()}}'"></a>
-        {% else %}
-        <a href="http://shakemap.rm.ingv.it/shake4/view.html?eventid={{id}}"><img src="http://shakemap.rm.ingv.it/shake4/data/{{id}}/current/products/pga.jpg"></a>
-        {% endif %}{% endif %}
-
-        <center>
-        <a href="http://terremoti.ingv.it/"> <img src="https://www.ingv.it/images/INGV_Acronimo_50.png" width="100" ></a>
-
-        <!-- Examples
-          Interactive Map
-          http://shakemap.rm.ingv.it/shake4/viewLeaflet.html?eventid=
-          Map Google
-          [{{state_attr(entityid, 'region')}}](http://maps.google.com/maps?z=8&q=loc:{{lat}}+{{long}})
-          Map Open Streat Map
-          [{{state_attr(entityid, 'region')}}](https://www.openstreetmap.org/?mlat={{lat}}&mlon={{long}}#map=8/{{lat}}/{{long}})
-        -->
-
-    - type: custom:auto-entities # CONDITIONAL ULTIMI {count} TERREMOTI
-      show_empty: false
-      sort:
-        {
-          attribute: publication_date,
-          method: attribute,
-          reverse: true,
-          count: 4,
-          first: 0,
-        }
-      filter:
-        include:
-          - entity_id: geo_location.*
-            attributes:
-              source: ingv_centro_nazionale_terremoti
-      card:
-        type: entities
-        entity_id: this.entity_id
-        card_mod:
-          style: |
-            ha-card {background: none; border-radius: 0px; box-shadow: none;}
-
-```
-
 <p class='img'>
   <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/ingv-terremoti-feed-image-url.png' />
 </p>
@@ -337,7 +211,6 @@ card:
 ## Trademark Legal Notices
 
 All product names, trademarks and registered trademarks in the images in this repository, are property of their respective owners. All images in this repository are used by the author for identification purposes only. The use of these names, trademarks and brands appearing in these image files, do not imply endorsement.
-
 
 [hacs]: https://github.com/custom-components/hacs
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg

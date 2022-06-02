@@ -1,10 +1,13 @@
 {
-    "domain": "ingv_centro_nazionale_terremoti",
-    "iot_class": "cloud_polling",
-    "name": "INGV Centro Nazionale Terremoti",
-    "version": "2022.02.0",
-    "documentation": "https://github.com/exxamalte/python-georss-ingv-centro-nazionale-terremoti-client",
-    "requirements": ["georss-ingv-centro-nazionale-terremoti-client==0.6"],
-    "issue_tracker": "https://github.com/caiosweet/Home-Assistant-custom-components-INGV/issues",
-    "codeowners": ["@exxamalte", "@caiosweet"]
+  "domain": "ingv_centro_nazionale_terremoti",
+  "name": "INGV Earthquakes",
+  "config_flow": true,
+  "documentation": "https://github.com/caiosweet/Home-Assistant-custom-components-INGV",
+  "issue_tracker": "https://github.com/caiosweet/Home-Assistant-custom-components-INGV/issues",
+  "requirements": ["aio_quakeml_ingv_centro_nazionale_terremoti_client==0.2"],
+  "codeowners": ["@exxamalte", "@caiosweet"],
+  "quality_scale": "platinum",
+  "iot_class": "cloud_polling",
+  "loggers": ["aio_quakeml_ingv_centro_nazionale_terremoti_client"],
+  "version": "0.0.0"
 }
