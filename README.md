@@ -73,7 +73,7 @@ You can also use following [My Home Assistant](http://my.home-assistant.io/) lin
    ```
 
 2. Save it.
-3. Restart again Home Assistant.
+3. Restart Home Assistant.
 
 > NOTE:
 > In an environment other than HassOS, you will probably need to install the dependencies manually.
@@ -91,7 +91,7 @@ You can also use following [My Home Assistant](http://my.home-assistant.io/) lin
 |**radius**| float | optional | 50.0 | The distance in kilometers around Home Assistant's coordinates in which seismic events are included.
 |**minimum_magnitude**| float | optional | 3.0 | The minimum magnitude of an earthquake to be included.
 |**scan_interval**| int | optional | 300 | The time in seconds for each update.
-|**start_time**| int | optional | 24 | The start-time delta in hours. (ex last 24 hours)
+|**start_time**| int | optional | 24 | The start-time delta in hours. (e.g., last 18 hours)
 
 ## State Attributes
 
@@ -120,8 +120,6 @@ are currently managed by this integration. In addition to that the sensor has
 some useful attributes that indicate the currentness of the data retrieved
 from the feed.
 
-![sensor](https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/sensor.png)
-
 | Attribute              | Description |
 |------------------------|-------------|
 | status                 | Status of last update from the feed ("OK" or "ERROR").  |
@@ -131,6 +129,8 @@ from the feed.
 | created                | Number of entities that were created during last update (optional).  |
 | updated                | Number of entities that were updated during last update (optional).  |
 | removed                | Number of entities that were removed during last update (optional).  |
+
+![sensor](https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/sensor.png)
 
 ## Full Configuration
 
@@ -146,12 +146,6 @@ ingv_centro_nazionale_terremoti:
   start_time: 24
 
 ```
-
-___
-
-## [Other information](https://hassiohelp.eu/2019/10/06/home-assistant-package-eventi-naturali/)
-
-## [My Package](https://github.com/caiosweet/Package-Natural-Events/tree/main/config/packages)
 
 ## Example Zone
 
@@ -204,9 +198,109 @@ aspect_ratio: '16:9'
 hours_to_show: 72
 ```
 
-<p class='img'>
-  <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/ingv-terremoti-feed-image-url.png' />
-</p>
+___
+
+## [Other information](https://hassiohelp.eu/2019/10/06/home-assistant-package-eventi-naturali/)
+
+## [My Package](https://github.com/caiosweet/Package-Natural-Events/tree/main/config/packages)
+
+```yaml
+type: markdown
+title: ''
+content: >-
+  {% set ingv_entities = integration_entities("ingv_centro_nazionale_terremoti") %}
+  {% set entityid = ingv_entities | select('match','geo_location') | max | default(false) %}
+
+  {# START ->> if geo_location entities exsist #}
+  {% if entityid %} 
+  {% set alert_type = {0:'info', 1:'success', 2:'warning', 3:'warning', 4:'error'} %}
+  {% set code = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red'} %} 
+  {% set url = "http://shakemap.rm.ingv.it/shake4/data/{}/current/products/{}.jpg" %}
+  {% set url2 = "http://shakemap.ingv.it/shake4/data/{}/current/products/{}.jpg" %} 
+  {% set openmap = "https://www.openstreetmap.org/?mlat={}&mlon={}#map=12/{}/{}" %}
+  {% set id = state_attr(entityid, 'event_id') %} 
+  {% set magnitudo = state_attr(entityid, 'magnitude')|float(default=0) %} 
+  {% set lat = state_attr(entityid, 'latitude') %} 
+  {% set long = state_attr(entityid, 'longitude') %} 
+  {% set utc = as_timestamp(state_attr(entityid, 'publication_date'),0) %} 
+  {% set depth = state_attr(entityid, 'depth')|default(none) %}
+  {# MACRO MAGNITUDE LEVEL #}
+  {% macro mag(m) -%}
+    {% if 0 <= m < 2 %}0{% elif 2 <= m < 3 %}1{% elif 3 <= m < 4 %}2
+    {% elif 4 <= m < 6 %}3{% else %}4{% endif %}
+  {% endmacro %}
+  {% set level = mag(magnitudo)|int(0) %}
+  {% set alert = alert_type[level] %}
+  {% set color = code[level] %}
+  {# MACRO BOLD TEXT FORMAT and COLOR according to the warning LEVEL #}
+  {%- macro form(data) -%}
+    <font color="{{color}}">**{{data}}**</font>
+  {%- endmacro -%}
+  ___
+
+  <ha-alert title="TERREMOTO 
+  {{ utc|timestamp_custom('%H:%M:%S del %d-%m-%Y') 
+  if utc is not none else 0 }}" alert-type={{alert}}>
+
+
+  Un terremoto di magnitudo {{ form(magnitudo) }}
+  è avvenuto nella zona: 
+  [{{ state_attr(entityid, 'region') }}]({{ openmap.format(lat,long,lat,long) }})
+  a {{ form(states(entityid)) }} km da casa,
+  con coordinate epicentrali {{ lat }}, {{ long }},
+  ad una profondità di {{ form(depth) }} Km.
+
+
+  {# PERSON #}
+  {% set state_dict = {'home': 'casa', 'not_home': 'fuori casa', 'unknown': '❓'} %} 
+  {% for person in expand(states.person) %} 
+  {% if 'latitude' in person.attributes and person.attributes.latitude is not none %} 
+  {% set distanza = distance(lat|default(0), long|default(0), person.entity_id|default(0)) %}
+  {{ "📍 {} ({}) a circa {} km dall'epicentro.".format(
+    person.name|upper, state_dict.get(person.state, person.state), distanza|round(1, default=0)
+    ) }} 
+  {% else %}
+  {{ "📍 {} ({})".format(person.name|upper, state_dict.get(person.state, person.state)) }} 
+  {% endif %} 
+  {% endfor %}
+
+  [INGV](http://terremoti.ingv.it/) [Hai Sentito Il Terremoto?](http://www.haisentitoilterremoto.it/) 
+
+
+  </ha-alert>
+
+  {# IMAGE AND LINK #}
+  {% if magnitudo >= 3 %}
+
+  [Intensity]({{url.format(id,'intensity')}}) ~ 
+  [PGA]({{url.format(id,'pga')}}) ~ [PGV]({{url.format(id,'pgv')}}) ~ 
+  [PSA0]({{url.format(id,'psa0p3')}}) ~ [PSA1]({{url.format(id,'psa1p0')}}) ~ 
+  [HSIT](http://eventi.haisentitoilterremoto.it/{{id}}/{{id}}_mcs.jpg)
+
+
+  {% if is_state('binary_sensor.download_file', 'on') %}
+
+  <a href="http://shakemap.rm.ingv.it/shake4/view.html?eventid={{id}}"><img
+  src="/local/hassiohelp/downloads/lastquake.jpg?t='{{now().timestamp()}}'"></a>
+  {% else %} 
+  <a  href="http://shakemap.rm.ingv.it/shake4/view.html?eventid={{id}}"><img
+  src="http://shakemap.rm.ingv.it/shake4/data/{{id}}/current/products/pga.jpg"></a>
+  {% endif %} {% endif %}
+
+
+  {# SENSOR STATUS #}
+  {% else %}
+  
+  {% for entity in ingv_entities %}
+  <ha-alert title="{{ state_attr(entity, 'friendly_name') }}" alert-type="info">
+  {{ state_attr(entity, 'status')|slugify(separator=" ") }} - {{ states(entity) }}
+  </ha-alert>
+  {% endfor %}
+  {% endif %}
+
+```
+
+![Markdown Card](https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/ingv-terremoti-feed-image-url.png)
 
 ## Trademark Legal Notices
 

@@ -173,7 +173,7 @@ class IngvGeolocationEvent(CoordinatorEntity, GeolocationEvent):
         """Update state and attributes from coordinator data."""
         _LOGGER.debug("Updating %s from coordinator data", self._external_id)
         if feed_entry := self.coordinator.get_entry(self._external_id):
-            self._depth = round(feed_entry.origin.depth / 1000)
+            self._depth = round((feed_entry.origin.depth / 1000), 1)
             self._distance = feed_entry.distance_to_home
             # Convert distance and depth if not metric system.
             if self.hass.config.units.name == CONF_UNIT_SYSTEM_IMPERIAL:
