@@ -306,7 +306,7 @@ content: >-
 
 All product names, trademarks and registered trademarks in the images in this repository, are property of their respective owners. All images in this repository are used by the author for identification purposes only. The use of these names, trademarks and brands appearing in these image files, do not imply endorsement.
 
-[hacs]: https://github.com/custom-components/hacs
+[hacs]: https://github.com/hacs/integration
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg
 
 [GitHub latest release]: https://img.shields.io/github/v/release/caiosweet/Home-Assistant-custom-components-INGV

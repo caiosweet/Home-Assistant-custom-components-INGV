@@ -1,6 +1,6 @@
 # Changes
 
-## 2022.06.0 (02/06/2022)
+## 2022.06.0 (04/06/2022)
 
 * Migrated to a new async library. Thanks @exxamalte, for your hard work.
 * Migrated to `DataUpdateCoordinator` to reduce code complexity and improve performance.
