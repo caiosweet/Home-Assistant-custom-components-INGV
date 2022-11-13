@@ -9,11 +9,9 @@ import voluptuous as vol
 from homeassistant.components.geo_location import PLATFORM_SCHEMA, GeolocationEvent
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import (
-    ATTR_TIME,
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_RADIUS,
-    CONF_UNIT_SYSTEM_IMPERIAL,
     LENGTH_KILOMETERS,
     LENGTH_MILES,
 )
@@ -176,7 +174,7 @@ class IngvGeolocationEvent(CoordinatorEntity, GeolocationEvent):
             self._depth = round((feed_entry.origin.depth / 1000), 1)
             self._distance = feed_entry.distance_to_home
             # Convert distance and depth if not metric system.
-            if self.hass.config.units.name == CONF_UNIT_SYSTEM_IMPERIAL:
+            if self.hass.config.units is IMPERIAL_SYSTEM:
                 self._depth = IMPERIAL_SYSTEM.length(self._depth, LENGTH_KILOMETERS)
                 self._distance = IMPERIAL_SYSTEM.length(self._distance, LENGTH_KILOMETERS)
                 self._attr_unit_of_measurement = LENGTH_MILES

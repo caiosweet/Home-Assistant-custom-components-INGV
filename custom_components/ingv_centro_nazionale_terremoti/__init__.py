@@ -15,7 +15,6 @@ from homeassistant.const import (
     CONF_LONGITUDE,
     CONF_RADIUS,
     CONF_SCAN_INTERVAL,
-    CONF_UNIT_SYSTEM_IMPERIAL,
     LENGTH_MILES,
     Platform,
 )
@@ -25,7 +24,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.util.unit_system import METRIC_SYSTEM
+from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 
 from .const import (
     CONF_MINIMUM_MAGNITUDE,
@@ -80,7 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     feeds = hass.data[DOMAIN].setdefault(FEED, {})
     radius = entry.options[CONF_RADIUS]
-    if hass.config.units.name == CONF_UNIT_SYSTEM_IMPERIAL:
+    if hass.config.units is IMPERIAL_SYSTEM:
         radius = METRIC_SYSTEM.length(radius, LENGTH_MILES)
     # Create feed entity coordinator for all platforms.
     coordinator = IngvDataUpdateCoordinator(hass=hass, entry=entry, radius_in_km=radius)
