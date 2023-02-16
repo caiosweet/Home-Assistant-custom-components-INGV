@@ -4,5 +4,5 @@
   "filename": "ingv_centro_nazionale_terremoti.zip",
   "country": ["IT"],
   "render_readme": true,
-  "homeassistant": "2022.11.0"
+  "homeassistant": "2023.02.0"
 }
