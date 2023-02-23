@@ -1,13 +1,20 @@
 {
-  "domain": "ingv_centro_nazionale_terremoti",
-  "name": "INGV Earthquakes",
-  "config_flow": true,
-  "documentation": "https://github.com/caiosweet/Home-Assistant-custom-components-INGV",
-  "issue_tracker": "https://github.com/caiosweet/Home-Assistant-custom-components-INGV/issues",
-  "requirements": ["aio_quakeml_ingv_centro_nazionale_terremoti_client==0.2"],
-  "codeowners": ["@exxamalte", "@caiosweet"],
-  "quality_scale": "platinum",
-  "iot_class": "cloud_polling",
-  "loggers": ["aio_quakeml_ingv_centro_nazionale_terremoti_client"],
-  "version": "0.0.0"
+	"codeowners": [
+		"@exxamalte",
+		"@caiosweet"
+	],
+	"config_flow": true,
+	"documentation": "https://github.com/caiosweet/Home-Assistant-custom-components-INGV",
+	"domain": "ingv_centro_nazionale_terremoti",
+	"iot_class": "cloud_polling",
+	"issue_tracker": "https://github.com/caiosweet/Home-Assistant-custom-components-INGV/issues",
+	"loggers": [
+		"aio_quakeml_ingv_centro_nazionale_terremoti_client"
+	],
+	"name": "INGV Earthquakes",
+	"quality_scale": "platinum",
+	"requirements": [
+		"aio_quakeml_ingv_centro_nazionale_terremoti_client==0.3"
+	],
+	"version": "0.0.0"
 }
