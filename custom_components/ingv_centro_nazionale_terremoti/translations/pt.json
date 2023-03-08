@@ -1,0 +1,32 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Preencher os os dados do INGV.",
+                "description": "Configurar a INGV integação de terramotos",
+                "data": {
+                    "location": "Localização",
+                    "latitude": "Latitude",
+                    "longitude": "Longitude"
+                }
+            }
+        },
+        "abort": {
+            "already_configured": "O serviço já foi configurado"
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Opcções INGV ",
+                "description": "Configurar a integração INGV",
+                "data": {
+                    "minimum_magnitude": "valor minimo da magnitude",
+                    "radius": "Raios",
+                    "scan_interval": "Tempo de atualização (Segundos)",
+                    "start_time": "Data de ínicio (houras)"
+                }
+            }
+        }
+    }
+}
