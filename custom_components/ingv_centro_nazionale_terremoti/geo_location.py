@@ -8,12 +8,11 @@ import voluptuous as vol
 
 from homeassistant.components.geo_location import PLATFORM_SCHEMA, GeolocationEvent
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
+from homeassistant.const import UnitOfLength
 from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_RADIUS,
-    LENGTH_KILOMETERS,
-    LENGTH_MILES,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
@@ -106,7 +105,7 @@ class IngvGeolocationEvent(CoordinatorEntity, GeolocationEvent):
     coordinator: IngvDataUpdateCoordinator
     _attr_force_update = DEFAULT_FORCE_UPDATE
     _attr_icon = "mdi:pulse"
-    _attr_unit_of_measurement = LENGTH_KILOMETERS
+    _attr_unit_of_measurement = UnitOfLength.KILOMETERS
 
     def __init__(
         self,
@@ -175,9 +174,9 @@ class IngvGeolocationEvent(CoordinatorEntity, GeolocationEvent):
             self._distance = feed_entry.distance_to_home
             # Convert distance and depth if not metric system.
             if self.hass.config.units is IMPERIAL_SYSTEM:
-                self._depth = IMPERIAL_SYSTEM.length(self._depth, LENGTH_KILOMETERS)
-                self._distance = IMPERIAL_SYSTEM.length(self._distance, LENGTH_KILOMETERS)
-                self._attr_unit_of_measurement = LENGTH_MILES
+                self._depth = IMPERIAL_SYSTEM.length(self._depth, UnitOfLength.KILOMETERS)
+                self._distance = IMPERIAL_SYSTEM.length(self._distance, UnitOfLength.KILOMETERS)
+                self._attr_unit_of_measurement = UnitOfLength.MILES
 
             self._description = feed_entry.description
             self._latitude = feed_entry.coordinates[0]
