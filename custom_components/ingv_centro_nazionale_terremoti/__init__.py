@@ -9,13 +9,13 @@ from aio_quakeml_ingv_centro_nazionale_terremoti_client import (
 )
 
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
+from homeassistant.const import UnitOfLength
 from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LOCATION,
     CONF_LONGITUDE,
     CONF_RADIUS,
     CONF_SCAN_INTERVAL,
-    LENGTH_MILES,
     Platform,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -80,7 +80,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     feeds = hass.data[DOMAIN].setdefault(FEED, {})
     radius = entry.options[CONF_RADIUS]
     if hass.config.units is IMPERIAL_SYSTEM:
-        radius = METRIC_SYSTEM.length(radius, LENGTH_MILES)
+        radius = METRIC_SYSTEM.length(radius, UnitOfLength.MILES)
     # Create feed entity coordinator for all platforms.
     coordinator = IngvDataUpdateCoordinator(hass=hass, entry=entry, radius_in_km=radius)
     feeds[entry.entry_id] = coordinator
