@@ -157,7 +157,7 @@ class IngvDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_update(self) -> None:
         """Refresh data."""
-        await self._feed_manager.update()
+        await self.hass.async_add_executor_job(self._feed_manager.update)
         _LOGGER.debug("Feed entity coordinator updated")
         return self._feed_manager.feed_entries
 
