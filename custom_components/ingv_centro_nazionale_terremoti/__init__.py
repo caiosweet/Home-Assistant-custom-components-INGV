@@ -2,6 +2,8 @@
 """All credit goes to Malte Franken [@exxamalte]."""
 from collections.abc import Callable
 from datetime import timedelta
+from importlib import import_module, util
+import inspect
 import logging
 
 from aio_quakeml_ingv_centro_nazionale_terremoti_client import (
@@ -81,6 +83,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     radius = entry.options[CONF_RADIUS]
     if hass.config.units is IMPERIAL_SYSTEM:
         radius = METRIC_SYSTEM.length(radius, UnitOfLength.MILES)
+    await _async_preload_dateparser(hass)
     # Create feed entity coordinator for all platforms.
     coordinator = IngvDataUpdateCoordinator(hass=hass, entry=entry, radius_in_km=radius)
     feeds[entry.entry_id] = coordinator
@@ -121,6 +124,18 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     await hass.config_entries.async_reload(entry.entry_id)
 
 
+async def _async_preload_dateparser(hass: HomeAssistant) -> None:
+    """Preload dateparser data to avoid blocking imports in the event loop."""
+    language = hass.config.language or "en"
+    module_names = [f"dateparser.data.date_translation_data.{language}"]
+    if language != "en":
+        module_names.append("dateparser.data.date_translation_data.en")
+    for module_name in module_names:
+        if util.find_spec(module_name) is None:
+            continue
+        await hass.async_add_executor_job(import_module, module_name)
+
+
 class IngvDataUpdateCoordinator(DataUpdateCoordinator):
     """Data update coordinator for the INGV Earthquakes integration."""
 
@@ -157,7 +172,10 @@ class IngvDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_update(self) -> None:
         """Refresh data."""
-        await self._feed_manager.update()
+        if inspect.iscoroutinefunction(self._feed_manager.update):
+            await self._feed_manager.update()
+        else:
+            await self.hass.async_add_executor_job(self._feed_manager.update)
         _LOGGER.debug("Feed entity coordinator updated")
         return self._feed_manager.feed_entries
 
