@@ -1,4 +1,5 @@
 """Define constants for the INGV Earthquakes integration."""
+
 from typing import Final
 
 from homeassistant.const import Platform
@@ -28,7 +29,9 @@ DEFAULT_UNIT_OF_MEASUREMENT: Final = "quakes"
 
 FEED: Final = "feed"
 
-IMAGE_URL_PATTERN: Final = "https://shakemap.ingv.it/data/{}/current/products/intensity.jpg"
+IMAGE_URL_PATTERN: Final = (
+    "https://shakemap.ingv.it/data/{}/current/products/intensity.jpg"
+)
 
 PLATFORMS: Final = [Platform.SENSOR, Platform.GEO_LOCATION]
 

@@ -1,16 +1,17 @@
-"""The INGV Earthquakes integration."""
-"""All credit goes to Malte Franken [@exxamalte]."""
+"""The INGV Earthquakes integration.
+
+All credit goes to Malte Franken [@exxamalte].
+"""
+import inspect
+import logging
 from collections.abc import Callable
 from datetime import timedelta
 from importlib import import_module, util
-import logging
 
 from aio_quakeml_ingv_centro_nazionale_terremoti_client import (
     IngvCentroNazionaleTerremotiQuakeMLFeedManager,
 )
-
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
-from homeassistant.const import UnitOfLength
 from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LOCATION,
@@ -18,6 +19,7 @@ from homeassistant.const import (
     CONF_RADIUS,
     CONF_SCAN_INTERVAL,
     Platform,
+    UnitOfLength,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
@@ -138,7 +140,9 @@ async def _async_preload_dateparser(hass: HomeAssistant) -> None:
 class IngvDataUpdateCoordinator(DataUpdateCoordinator):
     """Data update coordinator for the INGV Earthquakes integration."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, radius_in_km: float) -> None:
+    def __init__(
+        self, hass: HomeAssistant, entry: ConfigEntry, radius_in_km: float
+    ) -> None:
         """Initialize the Feed Entity Coordinator."""
         self.entry = entry
         self.hass = hass
@@ -171,7 +175,10 @@ class IngvDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_update(self) -> None:
         """Refresh data."""
-        await self.hass.async_add_executor_job(self._feed_manager.update)
+        if inspect.iscoroutinefunction(self._feed_manager.update):
+            await self._feed_manager.update()
+        else:
+            await self.hass.async_add_executor_job(self._feed_manager.update)
         _LOGGER.debug("Feed entity coordinator updated")
         return self._feed_manager.feed_entries
 

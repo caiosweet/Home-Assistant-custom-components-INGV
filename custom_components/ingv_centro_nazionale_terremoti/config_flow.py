@@ -1,11 +1,11 @@
 """Config flow for INGV Earthquakes integration."""
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import (
     CONF_LATITUDE,
@@ -42,9 +42,15 @@ class IngvConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_LOCATION, default=self.hass.config.location_name): str,
-                    vol.Optional(CONF_LATITUDE, default=self.hass.config.latitude): cv.latitude,
-                    vol.Optional(CONF_LONGITUDE, default=self.hass.config.longitude): cv.longitude,
+                    vol.Required(
+                        CONF_LOCATION, default=self.hass.config.location_name
+                    ): str,
+                    vol.Optional(
+                        CONF_LATITUDE, default=self.hass.config.latitude
+                    ): cv.latitude,
+                    vol.Optional(
+                        CONF_LONGITUDE, default=self.hass.config.longitude
+                    ): cv.longitude,
                 }
             ),
             errors=errors or {},
@@ -55,7 +61,9 @@ class IngvConfigFlow(ConfigFlow, domain=DOMAIN):
         _LOGGER.debug("Import config from: %s", import_config.get("platform", DOMAIN))
         return await self.async_step_user(import_config)
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Handle the start of the config flow."""
         _LOGGER.debug("User input: %s", user_input)
 
@@ -122,15 +130,20 @@ class IngvOptionsFlow(OptionsFlow):
                             ),
                         ): cv.positive_float,
                         vol.Optional(
-                            CONF_RADIUS, default=self.options.get(CONF_RADIUS, DEFAULT_RADIUS)
+                            CONF_RADIUS,
+                            default=self.options.get(CONF_RADIUS, DEFAULT_RADIUS),
                         ): vol.Coerce(float),
                         vol.Optional(
                             CONF_SCAN_INTERVAL,
-                            default=self.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+                            default=self.options.get(
+                                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                            ),
                         ): cv.positive_int,
                         vol.Optional(
                             CONF_START_TIME,
-                            default=self.options.get(CONF_START_TIME, DEFAULT_START_TIME),
+                            default=self.options.get(
+                                CONF_START_TIME, DEFAULT_START_TIME
+                            ),
                         ): cv.positive_int,
                     }
                 ),

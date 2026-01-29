@@ -1,22 +1,22 @@
 """Support for INGV Earthquakes integration geo location events."""
+
 from __future__ import annotations
 
 import functools
 import logging
 
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-
 from homeassistant.components.geo_location import PLATFORM_SCHEMA, GeolocationEvent
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
-from homeassistant.const import UnitOfLength
 from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_RADIUS,
+    UnitOfLength,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import DeviceInfo
@@ -55,7 +55,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_LATITUDE): cv.latitude,
         vol.Optional(CONF_LONGITUDE): cv.longitude,
         vol.Optional(CONF_RADIUS, default=DEFAULT_RADIUS): vol.Coerce(float),
-        vol.Optional(CONF_MINIMUM_MAGNITUDE, default=DEFAULT_MINIMUM_MAGNITUDE): cv.positive_float,
+        vol.Optional(
+            CONF_MINIMUM_MAGNITUDE, default=DEFAULT_MINIMUM_MAGNITUDE
+        ): cv.positive_float,
     }
 )
 
@@ -69,12 +71,16 @@ async def async_setup_entry(
     @callback
     def async_add_geolocation(coordinator, config_entry_unique_id, external_id):
         """Add geolocation entity from feed."""
-        new_entity = IngvGeolocationEvent(coordinator, config_entry_unique_id, external_id)
+        new_entity = IngvGeolocationEvent(
+            coordinator, config_entry_unique_id, external_id
+        )
         _LOGGER.debug("Adding geolocation %s", new_entity)
         async_add_entities([new_entity], False)
 
     coordinator.listeners.append(
-        async_dispatcher_connect(hass, coordinator.async_event_new_entity(), async_add_geolocation)
+        async_dispatcher_connect(
+            hass, coordinator.async_event_new_entity(), async_add_geolocation
+        )
     )
     _LOGGER.debug("Geolocation setup done")
 
@@ -95,7 +101,9 @@ async def async_setup_platform(
         config.get("platform", DOMAIN),
     )
     hass.async_create_task(
-        hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_IMPORT}, data=config)
+        hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": SOURCE_IMPORT}, data=config
+        )
     )
 
 
@@ -174,8 +182,12 @@ class IngvGeolocationEvent(CoordinatorEntity, GeolocationEvent):
             self._distance = feed_entry.distance_to_home
             # Convert distance and depth if not metric system.
             if self.hass.config.units is IMPERIAL_SYSTEM:
-                self._depth = IMPERIAL_SYSTEM.length(self._depth, UnitOfLength.KILOMETERS)
-                self._distance = IMPERIAL_SYSTEM.length(self._distance, UnitOfLength.KILOMETERS)
+                self._depth = IMPERIAL_SYSTEM.length(
+                    self._depth, UnitOfLength.KILOMETERS
+                )
+                self._distance = IMPERIAL_SYSTEM.length(
+                    self._distance, UnitOfLength.KILOMETERS
+                )
                 self._attr_unit_of_measurement = UnitOfLength.MILES
 
             self._description = feed_entry.description

@@ -1,4 +1,5 @@
 """INGV Earthquakes integration status sensor."""
+
 from __future__ import annotations
 
 import logging
@@ -95,7 +96,11 @@ class IngvSensorEntity(CoordinatorEntity, SensorEntity):
                 (ATTR_STATUS, status_info.status),
                 (
                     ATTR_LAST_UPDATE,
-                    (dt.as_utc(status_info.last_update) if status_info.last_update else None),
+                    (
+                        dt.as_utc(status_info.last_update)
+                        if status_info.last_update
+                        else None
+                    ),
                 ),
                 (
                     ATTR_LAST_UPDATE_SUCCESSFUL,
