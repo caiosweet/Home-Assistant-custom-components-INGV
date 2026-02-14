@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import functools
 import logging
+from urllib.parse import parse_qs, urlsplit
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -48,6 +49,33 @@ ATTR_MODE = "mode"
 ATTR_PUBLICATION_DATE = "publication_date"
 ATTR_REGION = "region"
 ATTR_STATUS = "status"
+
+
+def _extract_region_from_description(description: str | None) -> str | None:
+    """Extract region text from feed description without the type prefix."""
+    if not description:
+        return None
+
+    prefix, separator, value = description.partition(":")
+    if separator and prefix.strip().lower() == "region name":
+        cleaned_value = value.strip()
+        return cleaned_value or None
+
+    return description.strip()
+
+
+def _extract_event_id(external_id: str) -> str:
+    """Extract event id from an external id."""
+    query = urlsplit(external_id).query
+    if query:
+        parsed_query = parse_qs(query)
+        if parsed_event_id := parsed_query.get("eventId"):
+            if event_id := parsed_event_id[0]:
+                return event_id
+
+    fallback_event_id = external_id.rsplit("/", maxsplit=1)[-1]
+    return fallback_event_id or external_id
+
 
 # Deprecated.
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -124,10 +152,8 @@ class IngvGeolocationEvent(CoordinatorEntity, GeolocationEvent):
         """Initialize the entity."""
         super().__init__(coordinator)
         self._external_id = external_id
-        self._event_id = external_id.split("eventId=")[1]
+        self._event_id = _extract_event_id(external_id)
         self._attr_unique_id = f"{config_entry_unique_id}_{self._event_id}"
-        # I think I will rename the domain in the future. (INGV Earthquake?)
-        self.entity_id = f"geo_location.ingv_earthquakes_{self._attr_unique_id}"
         self._description = None
         self._distance: float | None = None
         self._latitude: float | None = None
@@ -158,8 +184,13 @@ class IngvGeolocationEvent(CoordinatorEntity, GeolocationEvent):
 
     async def async_will_remove_from_hass(self) -> None:
         """Call when entity will be removed from hass."""
+        await super().async_will_remove_from_hass()
+        # During integration unload/reload, keep registry entries so HA can reuse
+        # the same entity IDs when entities are added back.
+        if self.coordinator.is_unloading:
+            return
+
         entity_registry = er.async_get(self.hass)
-        # Remove from entity registry.
         if self.entity_id in entity_registry.entities:
             entity_registry.async_remove(self.entity_id)
             _LOGGER.debug("Removed geolocation %s from entity registry", self.entity_id)
@@ -195,15 +226,19 @@ class IngvGeolocationEvent(CoordinatorEntity, GeolocationEvent):
             self._longitude = feed_entry.coordinates[1]
             self._magnitude = feed_entry.magnitude.mag
             # extra attribute image url not in feed_entry
-            if self._magnitude >= 3:
+            if self._magnitude is not None and self._magnitude >= 3:
                 self._image_url = IMAGE_URL_PATTERN.format(self._event_id)
-            self._region = feed_entry._quakeml_event.description.text
+            self._region = _extract_region_from_description(self._description)
             self._time = feed_entry.origin.time
             self._status = feed_entry.origin.evaluation_status
             self._mode = feed_entry.origin.evaluation_mode
 
             self._attr_attribution = feed_entry.attribution
-            self._attr_name = f"M {self._magnitude:.1f} - {self._region}"
+            magnitude_for_name = (
+                f"{self._magnitude:.1f}" if self._magnitude is not None else "unknown"
+            )
+            region_for_name = self._region or "Unknown region"
+            self._attr_name = f"M {magnitude_for_name} - {region_for_name}"
 
     @callback
     def _handle_coordinator_update(self) -> None:

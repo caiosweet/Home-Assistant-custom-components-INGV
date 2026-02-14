@@ -25,3 +25,10 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Python bytecode
+*.pyc
+__pycache__/
+
+# Local agent instructions (keep private)
+AGENTS.md

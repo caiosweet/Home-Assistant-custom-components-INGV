@@ -34,7 +34,7 @@ _LOGGER = logging.getLogger(__name__)
 class IngvConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for INGV Earthquakes integration."""
 
-    VERSION = 1
+    VERSION = 2
 
     async def _show_form(self, errors: dict[str, Any] | None = None) -> FlowResult:
         """Show the form to the user."""

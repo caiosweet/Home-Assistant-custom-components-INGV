@@ -70,8 +70,6 @@ class IngvSensorEntity(CoordinatorEntity, SensorEntity):
         self._config_title = config_title
         self._attr_unique_id = f"{config_entry_unique_id}_status"
         self._attr_name = f"Ingv Earthquakes {config_title} status"
-        # I think I will rename the domain in the future. (INGV Earthquakes?)
-        self.entity_id = f"sensor.ingv_earthquakes_{self._attr_unique_id}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, coordinator.entry.entry_id)},
             entry_type=DeviceEntryType.SERVICE,

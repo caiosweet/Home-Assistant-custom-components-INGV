@@ -16,10 +16,10 @@ Instructions on how to integrate the INGV Earthquakes feed into Home Assistant.
 
 All credit goes to Malte Franken [@exxamalte](https://github.com/exxamalte).
 
-The `ingv_centro_nazionale_terremoti` integration lets you use a QuakeML feeds provided by the
+The `ingv_centro_nazionale_terremoti` integration lets you use a QuakeML feed provided by the
 Italian [Istituto Nazionale di Geofisica e Vulcanologia](http://www.ingv.it/it/) with information
 about seismic events like earthquakes on the Italian Peninsula.
-It retrieves incidents from a feed and shows information of those
+It retrieves incidents from a feed and shows information about those
 incidents filtered by distance to Home Assistant's location.
 
 Entities are generated, updated and removed automatically with each update
@@ -32,24 +32,22 @@ of each entity.
   <img src='https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/map.png' />
 </p>
 
-The data is updated every 5 minutes and retrieve all events from the last 24 hours by default.
+The data is updated every 5 minutes and retrieves all events from the last 24 hours by default.
 
 <div class='note'>
 
 The material used by this integration is provided under the [Creative Commons Attribution 4.0 International](http://creativecommons.org/licenses/by/4.0/).
 It has only been modified for the purpose of presenting the material in Home Assistant.
-Please refer to the [creator's disclaimer notice](hhttp://terremoti.ingv.it/en/webservices_and_software) and [Terms of service](http://www.fdsn.org/webservices/) for more information.
+Please refer to the [creator's disclaimer notice](http://terremoti.ingv.it/en/webservices_and_software) and [Terms of service](http://www.fdsn.org/webservices/) for more information.
 
-We acknowledge the INGV and ISIDe Working Group at National Earthquake Observatory project and its sponsors by the Italian Presidenza del Consiglio dei Ministri, Dipartimento della Protezione Civile, for providing data/images used in this integration.
+We acknowledge the INGV and ISIDe Working Group of the National Earthquake Observatory project and its sponsors, including the Italian Presidenza del Consiglio dei Ministri, Dipartimento della Protezione Civile, for providing data/images used in this integration.
 
 </div>
 
 ## How to install
 
-1. Install via [HACS](https://hacs.xyz/)
-  or
-    you can copy the entire  **ingv_centro_nazionale_terremoti** folder into **custom_components** folder in your root directory.
-    You will need to create the dir **custom_components** if this is your first custom component.
+1. Install via [HACS](https://hacs.xyz/), or copy the entire **ingv_centro_nazionale_terremoti** folder into the **custom_components** folder in your root directory.
+   You will need to create the **custom_components** directory if this is your first custom component.
 2. Restart Home Assistant.
 
 ## Configuration
@@ -58,11 +56,11 @@ We acknowledge the INGV and ISIDe Working Group at National Earthquake Observato
 
 To configure this integration go to: `Configurations` -> `Integrations` -> `ADD INTEGRATIONS` button, search for `INGV` and configure the component.
 
-You can also use following [My Home Assistant](http://my.home-assistant.io/) link
+You can also use the following [My Home Assistant](http://my.home-assistant.io/) link
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=ingv_centro_nazionale_terremoti)
 
-### Config yaml
+### YAML configuration
 
 1. Add the following lines to your `configuration.yaml`:
 
@@ -77,7 +75,7 @@ You can also use following [My Home Assistant](http://my.home-assistant.io/) lin
 
 > NOTE:
 > In an environment other than HassOS, you will probably need to install the dependencies manually.
-> Activate Python environment Home Assistant is running in and use following command:
+> Activate the Python environment Home Assistant is running in and use the following command:
 >
 > `python3 -m pip install aio_quakeml_ingv_centro_nazionale_terremoti_client`
 
@@ -87,7 +85,7 @@ You can also use following [My Home Assistant](http://my.home-assistant.io/) lin
 |--------------------|-------------|---------------|------------|--------------|
 |**location**| string | optional | Location name defined in your `configuration.yaml` | Location name.
 |**latitude**| string | optional | Latitude defined in your `configuration.yaml` | Latitude of the coordinates around which events are considered.
-|**longitude**| string | optional | Longitude defined in your `configuration. yaml` | Longitude of the coordinates around which events are considered.
+|**longitude**| string | optional | Longitude defined in your `configuration.yaml` | Longitude of the coordinates around which events are considered.
 |**radius**| float | optional | 50.0 | The distance in kilometers around Home Assistant's coordinates in which seismic events are included.
 |**minimum_magnitude**| float | optional | 3.0 | The minimum magnitude of an earthquake to be included.
 |**scan_interval**| int | optional | 300 | The time in seconds for each update.
@@ -108,7 +106,7 @@ The following state attributes are available for each entity in addition to the 
 | status             | The Evaluation Status of the quake (preliminary, confirmed, reviewed, final, rejected). |
 | mode               | The Evaluation Mode of the quake (manual or automatic). |
 | publication_date   | Date and time when this event occurred. |
-| event_id           | Return the short id used in the feed to identify the earthquake in the feed. |
+| event_id           | Returns the short id used in the feed to identify the earthquake in the feed. |
 | image_url          | URL for a map not provided in the feed that marks the location of the event. This could for example be used in notifications. **Images are only available for magnitude >= 3**. |
 
 ![geo_location](https://github.com/caiosweet/Home-Assistant-custom-components-INGV/blob/main/assets/images/geo_location.png)
@@ -117,7 +115,7 @@ The following state attributes are available for each entity in addition to the 
 
 This integration automatically creates a sensor that shows how many entities
 are currently managed by this integration. In addition to that the sensor has
-some useful attributes that indicate the currentness of the data retrieved
+some useful attributes that indicate the freshness of the data retrieved
 from the feed.
 
 | Attribute              | Description |
@@ -154,7 +152,7 @@ zone:
   - name: geoalert
     latitude: !secret latitude_home
     longitude: !secret longitude_home
-    radius: 100000 #The radius of the zone in meters
+    radius: 100000 # The radius of the zone in meters
     passive: true
 ```
 
@@ -189,7 +187,7 @@ automation:
 ```yaml
 type: map
 entities:
-  - entity: person.YUOR_PERSON
+  - entity: person.YOUR_PERSON
 geo_location_sources:
   - ingv_centro_nazionale_terremoti
 dark_mode: true
@@ -211,7 +209,7 @@ content: >-
   {% set ingv_entities = integration_entities("ingv_centro_nazionale_terremoti") %}
   {% set entityid = ingv_entities | select('match','geo_location') | max | default(false) %}
 
-  {# START ->> if geo_location entities exsist #}
+  {# START ->> if geo_location entities exist #}
   {% if entityid %} 
   {% set alert_type = {0:'info', 1:'success', 2:'warning', 3:'warning', 4:'error'} %}
   {% set code = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red'} %} 
@@ -319,7 +317,7 @@ All product names, trademarks and registered trademarks in the images in this re
 [GitHub issues]: https://github.com/caiosweet/Home-Assistant-custom-components-INGV/issues
 
 [website]: https://hassiohelp.eu/
-[Websitebadge]: https://img.shields.io/website?down_message=Offline&label=HssioHelp&logoColor=blue&up_message=Online&url=https%3A%2F%2Fhassiohelp.eu
+[Websitebadge]: https://img.shields.io/website?down_message=Offline&label=HassioHelp&logoColor=blue&up_message=Online&url=https%3A%2F%2Fhassiohelp.eu
 
 [telegram]: https://t.me/HassioHelp
 [telegrambadge]: https://img.shields.io/badge/Chat-Telegram-blue?logo=Telegram
