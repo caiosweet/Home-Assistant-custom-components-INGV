@@ -18,9 +18,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -165,10 +163,6 @@ class IngvGeolocationEvent(CoordinatorEntity, GeolocationEvent):
         self._mode = None
         self._time = None
         self._image_url = None
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self.coordinator.entry.entry_id)},
-            entry_type=DeviceEntryType.SERVICE,
-        )
 
     async def async_added_to_hass(self) -> None:
         """Call when entity is added to hass."""

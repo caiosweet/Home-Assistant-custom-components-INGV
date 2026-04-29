@@ -1,5 +1,9 @@
 # Changes
 
+## 2026.04.0 (29/04/2026)
+
+* Removed the device association from transient `geo_location` earthquake entities, matching Home Assistant's official earthquake feed integrations and preventing the main Map panel from prefixing marker labels with `INGV Earthquakes`.
+
 ## 2026.02.0 (14/02/2026)
 
 * Fixed issue #40: invalid manually assigned `entity_id` values in `sensor` and `geo_location` entities.
